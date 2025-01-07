@@ -34,7 +34,7 @@ public class Sale {
         this.date = date;
     }
 
-    public String gePaymentMethod() {
+    public String getPaymentMethod() {
         return paymentMethod;
     }
 

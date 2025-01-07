@@ -72,7 +72,6 @@ public class UserDAO {
             JOptionPane.showMessageDialog(null, "Erro ao buscar usuário");
             return null;
         }
-
     }
 
     public ArrayList<User> getAllUsers() {
@@ -98,7 +97,7 @@ public class UserDAO {
             return data;
         } catch (SQLException e) {
             e.getMessage();
-            JOptionPane.showMessageDialog(null, "Erro ao pegar a lista.");
+            JOptionPane.showMessageDialog(null, "Erro ao pegar a lista de usuários.");
             return null;
         }
     }
