@@ -22,4 +22,16 @@ public class ConnectionDatabase {
             throw new SQLException("Erro ao conectar ao banco de dados.", e);
         }
     }
+
+    public static void main(String[] args) {
+        ConnectionDatabase connectionDatabase = new ConnectionDatabase();
+        try {
+            Connection connection = connectionDatabase.getConnection();
+            System.out.println("Conexão estabelecida com sucesso!");
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
 }

@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 import database.ConnectionDatabase;
 import model.Category;
 
@@ -17,95 +19,129 @@ public class CategoryDAO {
     }
 
     public void add(Category category) {
-        String sql = "INSERT INTO category(name) VALUES(?)";
-        try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+        try {
+            String sql;
+
+            sql = "INSERT INTO category(name) VALUES(?)";
+            PreparedStatement stmt = this.connection.prepareStatement(sql);
+
             stmt.setString(1, category.getName());
+
             stmt.execute();
-            System.out.println("Categoria adicionada!");
+            stmt.close();
+
+            JOptionPane.showMessageDialog(null, "Categoria adicionada!");
+
         } catch (SQLException u) {
-            System.out.println("Erro ao adicionar categoria: " + u.getMessage());
             throw new RuntimeException(u);
         }
     }
 
     public Category getCategory(Category categoryId) {
-        String sql = "SELECT * FROM category WHERE id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, categoryId.getId());
-            ResultSet result = ps.executeQuery();
+        try {
+            String sql = "";
 
-            if (result.next()) {
-                Category category = new Category();
+            sql = "SELECT * FROM category WHERE id = " + categoryId.getId();
+
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet result = ps.executeQuery();
+            Category category = new Category();
+
+            while (result.next()) {
                 category.setId(result.getInt("id"));
                 category.setName(result.getString("name"));
-                return category;
-            } else {
-                System.out.println("ID inválido.");
-                return null;
+
             }
+
+            ps.close();
+            result.close();
+
+            if (category.getId() == 0) {
+                JOptionPane.showMessageDialog(null, "ID inválido.");
+            }
+
+            return category;
         } catch (SQLException e) {
-            System.out.println("Erro ao buscar categoria: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erro ao buscar categoria");
+            return null;
+        }
+
+    }
+
+    public ArrayList<Category> getAllCategories() {
+        try {
+
+            ArrayList<Category> data = new ArrayList<Category>();
+
+            PreparedStatement ps = this.connection.prepareStatement("SELECT * FROM category");
+            ResultSet result = ps.executeQuery();
+
+            while (result.next()) {
+
+                data.add(new Category(
+                        result.getInt("id"),
+                        result.getString("name")));
+
+            }
+            ps.close();
+            result.close();
+            this.connection.close();
+
+            return data;
+        } catch (SQLException e) {
+            e.getMessage();
+            JOptionPane.showMessageDialog(null, "Erro ao pegar a lista.");
             return null;
         }
     }
 
     public void update(Category category) {
-        String sql = "UPDATE category SET name = ? WHERE id = ?";
-        try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
-            stmt.setString(1, category.getName());
-            stmt.setInt(2, category.getId());
+        try {
+            String sql;
+            Category oldCategory = this.getCategory(category);
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Categoria atualizada!");
-            } else {
-                System.out.println("Nenhuma categoria encontrada para atualizar.");
-            }
+            sql = "UPDATE category SET name = ? WHERE id = " + category.getId();
+            PreparedStatement stmt = this.connection.prepareStatement(sql);
+
+            stmt.setString(1, String.valueOf(category.getName()).isEmpty() ? oldCategory.getName()
+                    : category.getName());
+
+            stmt.executeUpdate();
+            stmt.close();
+            JOptionPane.showMessageDialog(null, "Categoria atuaizada!");
+
         } catch (SQLException u) {
-            System.out.println("Erro ao atualizar categoria: " + u.getMessage());
             throw new RuntimeException(u);
         }
     }
 
     public void delete(Category category) {
-        String sql = "DELETE FROM category WHERE id = ?";
-        try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
-            stmt.setInt(1, category.getId());
+        try {
+            String sql;
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Categoria excluída!");
+            if (!String.valueOf(category.getId()).isEmpty() && this.getCategory(category).getId() != 0) {
+                sql = "DELETE FROM category WHERE id = ?";
+                PreparedStatement stmt = this.connection.prepareStatement(sql);
+
+                stmt.setInt(1, category.getId());
+                stmt.execute();
+                stmt.close();
+
+                JOptionPane.showMessageDialog(null, "Categoria excluida!");
+
             } else {
-                System.out.println("ID inválido.");
+                JOptionPane.showMessageDialog(null, "ID inválido");
             }
         } catch (SQLException u) {
-            System.out.println("Erro ao excluir categoria: " + u.getMessage());
             throw new RuntimeException(u);
+
         }
     }
 
-    public ArrayList<Category> getAllCategories() {
-        ArrayList<Category> data = new ArrayList<>();
-        String sql = "SELECT * FROM category";
-        try (PreparedStatement ps = this.connection.prepareStatement(sql);
-                ResultSet result = ps.executeQuery()) {
-
-            while (result.next()) {
-                data.add(new Category(
-                        result.getInt("id"),
-                        result.getString("name")));
-            }
-        } catch (SQLException e) {
-            System.out.println("Erro ao pegar a lista: " + e.getMessage());
-        }
-        return data;
-    }
-
-    public void testConnection() {
+    public void testConnection() throws SQLException {
         try (Connection objConnection = new ConnectionDatabase().getConnection()) {
-            System.out.println("Conexão realizada com sucesso!");
-        } catch (SQLException e) {
-            System.out.println("Erro ao testar conexão: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Conexão realizada com sucesso!");
         }
     }
+
 }

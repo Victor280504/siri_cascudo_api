@@ -28,6 +28,6 @@ public class Category {
     }
 
     public String getToString(){
-        return "id: "+this.getId()+" | Name: "+this.getName();
+        return "Id: "+this.getId()+" | Name: "+this.getName();
     }
 }
