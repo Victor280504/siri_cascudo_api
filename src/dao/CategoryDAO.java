@@ -117,24 +117,23 @@ public class CategoryDAO {
 
     public void delete(Category category) {
         try {
-            String sql;
+            if (category == null) {
+                JOptionPane.showMessageDialog(null, "Erro: Categoria inválida.");
+                return;
+            }
+    
+            Category existingCategory = this.getCategory(category);
 
-            if (!String.valueOf(category.getId()).isEmpty() && this.getCategory(category).getId() != 0) {
-                sql = "DELETE FROM category WHERE id = ?";
-                PreparedStatement stmt = this.connection.prepareStatement(sql);
-
-                stmt.setInt(1, category.getId());
-                stmt.execute();
-                stmt.close();
-
-                JOptionPane.showMessageDialog(null, "Categoria excluida!");
-
-            } else {
-                JOptionPane.showMessageDialog(null, "ID inválido");
+            if (existingCategory != null && existingCategory.getId() > 0) {
+                String sql = "DELETE FROM category WHERE id = ?";
+                try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+                    stmt.setInt(1, category.getId());
+                    stmt.execute();
+                }
+                JOptionPane.showMessageDialog(null, "Categoria excluída com sucesso!");
             }
         } catch (SQLException u) {
             throw new RuntimeException(u);
-
         }
     }
 

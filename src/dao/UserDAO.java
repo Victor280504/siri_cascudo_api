@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 import database.ConnectionDatabase;
+import model.SaleProduct;
 import model.User;
 
 public class UserDAO {
@@ -132,24 +133,23 @@ public class UserDAO {
 
     public void delete(User user) {
         try {
-            String sql;
+            if (user == null) {
+                JOptionPane.showMessageDialog(null, "Erro: Usuário inválido.");
+                return;
+            }
+    
+            User existingUser = this.getUser(user);
 
-            if (!String.valueOf(user.getId()).isEmpty() && this.getUser(user).getId() != 0) {
-                sql = "DELETE FROM user WHERE id = ?";
-                PreparedStatement stmt = this.connection.prepareStatement(sql);
-
-                stmt.setInt(1, user.getId());
-                stmt.execute();
-                stmt.close();
-
-                JOptionPane.showMessageDialog(null, "Usuário excluido!");
-
-            } else {
-                JOptionPane.showMessageDialog(null, "ID inválido");
+            if (existingUser != null && existingUser.getId() > 0) {
+                String sql = "DELETE FROM user WHERE id_user = ?";
+                try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+                    stmt.setInt(1, user.getId());
+                    stmt.execute();
+                }
+                JOptionPane.showMessageDialog(null, "Usuário excluído com sucesso!");
             }
         } catch (SQLException u) {
             throw new RuntimeException(u);
-
         }
     }
 }

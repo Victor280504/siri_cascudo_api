@@ -61,10 +61,9 @@ public class ProductDAO {
                 product.setDescription(result.getString("description"));
                 product.setImage(result.getString("image"));
                 product.setQuantity(result.getInt("quantity"));
-                product.setPrice(result.getDouble("price")); //TIPO?
+                product.setPrice(result.getDouble("price"));
                 product.setIdCategory(result.getInt("id_category"));
             }
-            //OS TIPOS TÃO CERTOS?
 
             ps.close();
             result.close();
@@ -84,7 +83,7 @@ public class ProductDAO {
     public ArrayList<Product> getAllProducts() {
         ArrayList<Product> data = new ArrayList<Product>();
 
-            try {
+        try {
             PreparedStatement ps = this.connection.prepareStatement("SELECT * FROM product");
             ResultSet result = ps.executeQuery();
 
@@ -126,7 +125,7 @@ public class ProductDAO {
             stmt.setDouble(4, product.getPrice() == 0.0 ? oldProduct.getPrice()
                     : product.getPrice());
             stmt.setInt(5, product.getIdCategory() == 0 ? oldProduct.getIdCategory()
-                    : product.getIdCategory());   
+                    : product.getIdCategory());
 
             stmt.executeUpdate();
             stmt.close();
@@ -139,20 +138,20 @@ public class ProductDAO {
 
     public void delete(Product product) {
         try {
-            String sql;
+            if (product == null) {
+                JOptionPane.showMessageDialog(null, "Erro: Produto inválido.");
+                return;
+            }
+    
+            Product existingProduct = this.getProduct(product);
 
-            if (!String.valueOf(product.getId()).isEmpty() && this.getProduct(product).getId() != 0) {
-                sql = "DELETE FROM product WHERE id = ?";
-                PreparedStatement stmt = this.connection.prepareStatement(sql);
-
-                stmt.setInt(1, product.getId());
-                stmt.execute();
-                stmt.close();
-
-                JOptionPane.showMessageDialog(null, "Produto excluido!");
-
-            } else {
-                JOptionPane.showMessageDialog(null, "ID inválido");
+            if (existingProduct != null && existingProduct.getId() > 0) {
+                String sql = "DELETE FROM product WHERE id = ?";
+                try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+                    stmt.setInt(1, product.getId());
+                    stmt.execute();
+                }
+                JOptionPane.showMessageDialog(null, "Produto excluído com sucesso!");
             }
         } catch (SQLException u) {
             throw new RuntimeException(u);

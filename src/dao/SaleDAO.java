@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import model.Sale;
+import model.SaleProduct;
 
 public class SaleDAO {
     
@@ -132,20 +133,20 @@ public class SaleDAO {
 
     public void delete(Sale sale) {
         try {
-            String sql;
+            if (sale == null) {
+                JOptionPane.showMessageDialog(null, "Erro: Venda inválida.");
+                return;
+            }
+    
+            Sale existingSale = this.getSale(sale);
 
-            if (!String.valueOf(sale.getId()).isEmpty() && this.getSale(sale).getId() != 0) {
-                sql = "DELETE FROM sale WHERE id = ?";
-                PreparedStatement stmt = this.connection.prepareStatement(sql);
-
-                stmt.setInt(1, sale.getId());
-
-                stmt.execute();
-                stmt.close();
-
-                JOptionPane.showMessageDialog(null, "Venda excluida!");
-            } else {
-                JOptionPane.showMessageDialog(null, "ID inválido");
+            if (existingSale != null && existingSale.getId() > 0) {
+                String sql = "DELETE FROM sale WHERE id = ?";
+                try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+                    stmt.setInt(1, sale.getId());
+                    stmt.execute();
+                }
+                JOptionPane.showMessageDialog(null, "Venda excluída com sucesso!");
             }
         } catch (SQLException u) {
             throw new RuntimeException(u);

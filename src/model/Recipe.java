@@ -1,14 +1,14 @@
 package model;
 
-public class Revenue {
+public class Recipe {
     private int idIngredient;
     private int idProduct;
     private int quantity;
 
-    public Revenue() {
+    public Recipe() {
     }
 
-    public Revenue(int idIngredient, int idProduct, int quantity) {
+    public Recipe(int idIngredient, int idProduct, int quantity) {
         this.idIngredient = idIngredient;
         this.idProduct = idProduct;
         this.quantity = quantity;
@@ -34,7 +34,7 @@ public class Revenue {
         return quantity;
     }
 
-    public void seQuantity(int quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 

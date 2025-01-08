@@ -36,7 +36,7 @@ public class SaleProduct {
         return quantity;
     }
 
-    public void seQuantity(int quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 
