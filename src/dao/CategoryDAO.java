@@ -142,5 +142,4 @@ public class CategoryDAO {
             JOptionPane.showMessageDialog(null, "Conexão realizada com sucesso!");
         }
     }
-
 }
