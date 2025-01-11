@@ -18,15 +18,13 @@ public class UserRoleDAO {
         connection = new ConnectionDatabase().getConnection();
     }
 
-    public void add(UserRole UserRole) {
+    public void add(UserRole userRole) {
         try {
-            String sql;
-
-            sql = "INSERT INTO user_roles(userId, role) VALUES(?)";
+            String sql = "INSERT INTO user_roles(id_user, role) VALUES(?, ?)";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
-            stmt.setInt(1, UserRole.getIdUser());
-            stmt.setString(2, UserRole.getRole());
+            stmt.setInt(1, userRole.getIdUser());
+            stmt.setString(2, userRole.getRole());
 
             stmt.execute();
             stmt.close();
@@ -38,27 +36,25 @@ public class UserRoleDAO {
         }
     }
 
-    public UserRole getUserRole(UserRole userRoleId) {
+    public UserRole getRoleByUser(UserRole userId) {
         try {
-            String sql = "";
-
-            sql = "SELECT * FROM user_role WHERE idUser = " + userRoleId.getIdUser() + "AND role = "
-                    + userRoleId.getRole();
-
+            String sql = "SELECT * FROM user_roles WHERE id_user = ?";
             PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, userId.getIdUser());
             ResultSet result = ps.executeQuery();
-            UserRole userRole = new UserRole();
 
-            while (result.next()) {
+            UserRole userRole = null;
+
+            if (result.next()) {
+                userRole = new UserRole();
                 userRole.setIdUser(result.getInt("id_user"));
                 userRole.setRole(result.getString("role"));
-
             }
 
             ps.close();
             result.close();
 
-            if (userRole.getIdUser() == 0) {
+            if (userRole == null) {
                 JOptionPane.showMessageDialog(null, "ID inválido.");
             }
 
@@ -67,31 +63,25 @@ public class UserRoleDAO {
             JOptionPane.showMessageDialog(null, "Erro ao buscar regra de usuário");
             return null;
         }
-
     }
 
     public ArrayList<UserRole> getAllCategories() {
         try {
-
             ArrayList<UserRole> data = new ArrayList<UserRole>();
 
             PreparedStatement ps = this.connection.prepareStatement("SELECT * FROM user_roles");
             ResultSet result = ps.executeQuery();
 
             while (result.next()) {
-
                 data.add(new UserRole(
                         result.getInt("id_user"),
                         result.getString("role")));
-
             }
             ps.close();
             result.close();
-            this.connection.close();
 
             return data;
         } catch (SQLException e) {
-            e.getMessage();
             JOptionPane.showMessageDialog(null, "Erro ao pegar a lista.");
             return null;
         }
@@ -100,20 +90,18 @@ public class UserRoleDAO {
     public void update(UserRole userRole) {
         try {
             String sql;
-            UserRole oldUserRole = this.getUserRole(userRole);
+            UserRole oldUserRole = this.getRoleByUser(userRole);
 
-            sql = "UPDATE user_role SET idUser, role = ? WHERE idUser = " + userRole.getIdUser() + "AND role = "
-                    + userRole.getRole();
+            sql = "UPDATE user_roles SET id_user = ?, role = ? WHERE id_user = ?";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
-            stmt.setInt(1, Integer.valueOf(userRole.getIdUser()) == 0 ? oldUserRole.getIdUser()
-                    : userRole.getIdUser());
-            stmt.setString(1, String.valueOf(userRole.getRole()).isEmpty() ? oldUserRole.getRole()
-                    : userRole.getRole());
+            stmt.setInt(1, userRole.getIdUser() == 0 ? oldUserRole.getIdUser() : userRole.getIdUser());
+            stmt.setString(2, userRole.getRole().isEmpty() ? oldUserRole.getRole() : userRole.getRole());
+            stmt.setInt(3, userRole.getIdUser());
 
             stmt.executeUpdate();
             stmt.close();
-            JOptionPane.showMessageDialog(null, "Regra de usuário atuaizada!");
+            JOptionPane.showMessageDialog(null, "Regra de usuário atualizada!");
 
         } catch (SQLException u) {
             throw new RuntimeException(u);
@@ -122,22 +110,18 @@ public class UserRoleDAO {
 
     public void delete(UserRole userRole) {
         try {
-            if (userRole == null) {
+            if (userRole == null || userRole.getIdUser() <= 0 || userRole.getRole().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Erro: Regra de usuário inválida.");
                 return;
             }
 
-            UserRole existingUserRole = this.getUserRole(userRole);
-
-            if (existingUserRole != null && existingUserRole.getIdUser() > 0 && existingUserRole.getRole() != "") {
-                String sql = "DELETE FROM user_roles WHERE idUser = ? AND role = ?";
-                try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
-                    stmt.setInt(1, userRole.getIdUser());
-                    stmt.setString(2, userRole.getRole());
-                    stmt.execute();
-                }
-                JOptionPane.showMessageDialog(null, "Regra de usuário excluída com sucesso!");
+            String sql = "DELETE FROM user_roles WHERE id_user = ? AND role = ?";
+            try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
+                stmt.setInt(1, userRole.getIdUser());
+                stmt.setString(2, userRole.getRole());
+                stmt.execute();
             }
+            JOptionPane.showMessageDialog(null, "Regra de usuário excluída com sucesso!");
         } catch (SQLException u) {
             throw new RuntimeException(u);
         }
@@ -148,5 +132,4 @@ public class UserRoleDAO {
             JOptionPane.showMessageDialog(null, "Conexão realizada com sucesso!");
         }
     }
-
 }

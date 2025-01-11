@@ -12,7 +12,7 @@ public class ConnectionDatabase {
             
             // Estabelecer a conexão
             return DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5432/siricascudo", 
+                "jdbc:postgresql://localhost:5432/siriCascudo", 
                 "postgres", 
                 "1234"
             );

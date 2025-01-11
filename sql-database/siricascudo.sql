@@ -1,3 +1,6 @@
+-- Create Database Comand: psql -U postgres -d siriCascudo -f caminho_para_o_dump.sql
+-- Exemple: psql -U postgres -d siriCascudo -f siri-cascudo-api/sql-database/siricascudo.sql (Relative Rote by Github)
+
 --
 -- PostgreSQL database dump
 --
@@ -108,7 +111,7 @@ ALTER SEQUENCE public.ingredient_id_seq OWNED BY public.ingredient.id;
 CREATE TABLE public.product (
     id integer NOT NULL,
     description character varying,
-    image bytea,
+    image character varying,
     quantity integer,
     price numeric,
     id_category bigint NOT NULL
@@ -144,17 +147,17 @@ ALTER SEQUENCE public.product_id_seq OWNED BY public.product.id;
 
 --
 -- TOC entry 226 (class 1259 OID 16468)
--- Name: revenue; Type: TABLE; Schema: public; Owner: postgres
+-- Name: recipe; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.revenue (
+CREATE TABLE public.recipe (
     id_ingredient bigint NOT NULL,
     id_product bigint NOT NULL,
     quantity integer
 );
 
 
-ALTER TABLE public.revenue OWNER TO postgres;
+ALTER TABLE public.recipe OWNER TO postgres;
 
 --
 -- TOC entry 223 (class 1259 OID 16441)
@@ -339,10 +342,10 @@ COPY public.product (id, description, image, quantity, price, id_category) FROM 
 --
 -- TOC entry 4904 (class 0 OID 16468)
 -- Dependencies: 226
--- Data for Name: revenue; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: recipe; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.revenue (id_ingredient, id_product, quantity) FROM stdin;
+COPY public.recipe (id_ingredient, id_product, quantity) FROM stdin;
 \.
 
 
@@ -469,11 +472,11 @@ ALTER TABLE ONLY public.product
 
 --
 -- TOC entry 4740 (class 2606 OID 16472)
--- Name: revenue revenue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: recipe recipe_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.revenue
-    ADD CONSTRAINT revenue_pkey PRIMARY KEY (id_ingredient, id_product);
+ALTER TABLE ONLY public.recipe
+    ADD CONSTRAINT recipe_pkey PRIMARY KEY (id_ingredient, id_product);
 
 
 --
@@ -523,20 +526,20 @@ ALTER TABLE ONLY public.product
 
 --
 -- TOC entry 4746 (class 2606 OID 16478)
--- Name: revenue revenue_id_ingredient_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: recipe recipe_id_ingredient_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.revenue
-    ADD CONSTRAINT revenue_id_ingredient_fkey FOREIGN KEY (id_ingredient) REFERENCES public.ingredient(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE ONLY public.recipe
+    ADD CONSTRAINT recipe_id_ingredient_fkey FOREIGN KEY (id_ingredient) REFERENCES public.ingredient(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
 -- TOC entry 4747 (class 2606 OID 16473)
--- Name: revenue revenue_id_product_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: recipe recipe_id_product_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.revenue
-    ADD CONSTRAINT revenue_id_product_fkey FOREIGN KEY (id_product) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE ONLY public.recipe
+    ADD CONSTRAINT recipe_id_product_fkey FOREIGN KEY (id_product) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --

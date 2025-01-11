@@ -22,7 +22,7 @@ public class IngredientDAO {
         try {
             String sql;
 
-            sql = "INSERT INTO ingredient(description, quantity, price) VALUES(?)";
+            sql = "INSERT INTO ingredient(description, quantity, price) VALUES(?, ?, ?)";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setString(1, Ingredient.getDescription());
@@ -100,27 +100,27 @@ public class IngredientDAO {
 
     public void update(Ingredient ingredient) {
         try {
-            String sql;
             Ingredient oldIngredient = this.getIngredient(ingredient);
 
-            sql = "UPDATE ingredient SET description, quantity, price WHERE id = " + ingredient.getId();
+            String sql = "UPDATE ingredient SET description = ?, quantity = ?, price = ? WHERE id = " + ingredient.getId();
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
-            stmt.setString(1, String.valueOf(ingredient.getDescription().isEmpty() ? oldIngredient.getDescription()
-                    : ingredient.getDescription()));
+            String description = ingredient.getDescription().isEmpty() ? oldIngredient.getDescription()
+                    : ingredient.getDescription();
+            stmt.setString(1, description);
 
-            // !!!!!!!! - Como usar o isEmpty() pros números pois não tem função? - !!!!!!!!!!!!!!
-            stmt.setInt(2, Integer.valueOf(ingredient.getQuantity() == 0 ? oldIngredient.getQuantity()
-                    : ingredient.getQuantity()));
-            stmt.setDouble(3, Double.valueOf(ingredient.getPrice() == 0.0 ? oldIngredient.getPrice()
-                    : ingredient.getPrice()));
+            int quantity = (ingredient.getQuantity() == 0) ? oldIngredient.getQuantity() : ingredient.getQuantity();
+            stmt.setInt(2, quantity);
+
+            double price = (ingredient.getPrice() == 0.0) ? oldIngredient.getPrice() : ingredient.getPrice();
+            stmt.setDouble(3, price);
 
             stmt.executeUpdate();
             stmt.close();
-            JOptionPane.showMessageDialog(null, "Ingrediente atuaizado!");
 
-        } catch (SQLException u) {
-            throw new RuntimeException(u);
+            JOptionPane.showMessageDialog(null, "Ingrediente atualizado com sucesso!");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

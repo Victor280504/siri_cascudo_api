@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import model.Sale;
-import model.SaleProduct;
 
 public class SaleDAO {
     
@@ -29,7 +28,7 @@ public class SaleDAO {
 
     public void add(Sale sale){
         String sql;
-        sql = "INSERT INTO sale(date, paymentMethod, idUser) VALUES(?)";
+        sql = "INSERT INTO sale(date, paymentMethod, idUser) VALUES(?, ?, ?)";
 
         try {
             PreparedStatement stmt = this.connection.prepareStatement(sql);
@@ -112,7 +111,7 @@ public class SaleDAO {
 
             Sale oldSale = this.getSale(sale);
 
-            sql = "UPDATE sale SET date, paymentMethod, idUser = ? WHERE id = " + sale.getId();
+            sql = "UPDATE sale SET date = ?, paymentMethod = ?, idUser = ? WHERE id = " + sale.getId();
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setDate(1, (sale.getDate() == null) ? oldSale.getDate()

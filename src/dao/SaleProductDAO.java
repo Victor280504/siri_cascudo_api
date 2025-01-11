@@ -7,8 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-
-import model.Product;
 import model.SaleProduct;
 
 public class SaleProductDAO {
@@ -28,7 +26,7 @@ public class SaleProductDAO {
         try {
             String sql;
 
-            sql = "INSERT INTO sale_product(id_user, id_product, quantity, value) VALUES(?)";
+            sql = "INSERT INTO sale_product(id_user, id_product, quantity, value) VALUES(?, ?, ?, ?)";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setInt(1, saleProduct.getIdUser());
@@ -109,7 +107,7 @@ public class SaleProductDAO {
 
             SaleProduct oldSaleProduct = this.getSaleProduct(saleProduct);
 
-            sql = "UPDATE sale_product SET id_user, id_product, quantity, value = ? WHERE id_user = " + saleProduct.getIdUser() + "AND id_product =" +  saleProduct.getIdProduct();
+            sql = "UPDATE sale_product SET id_user = ?, id_product = ?, quantity = ?, value = ? WHERE id_user = " + saleProduct.getIdUser() + "AND id_product =" +  saleProduct.getIdProduct();
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setInt(1, saleProduct.getIdUser() == 0 ? oldSaleProduct.getIdUser()

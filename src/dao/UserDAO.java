@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 import database.ConnectionDatabase;
-import model.SaleProduct;
 import model.User;
 
 public class UserDAO {
@@ -23,7 +22,7 @@ public class UserDAO {
         try {
             String sql;
 
-            sql = "INSERT INTO user(name, email, password, address, login) VALUES(?)";
+            sql = "INSERT INTO \"user\"(name, email, password, address, login) VALUES(?, ?, ?, ?, ?)";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setString(1, user.getName());
@@ -46,7 +45,7 @@ public class UserDAO {
         try {
             String sql = "";
 
-            sql = "SELECT * FROM user WHERE id = " + userId.getId();
+            sql = "SELECT * FROM \"user\" WHERE id = " + userId.getId();
 
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet result = ps.executeQuery();
@@ -75,12 +74,63 @@ public class UserDAO {
         }
     }
 
+    public User getByLogin(String login) {
+        try {
+            String sql = "SELECT * FROM \"user\" WHERE login = ?";
+            PreparedStatement stmt = this.connection.prepareStatement(sql);
+            stmt.setString(1, login);
+
+            ResultSet result = stmt.executeQuery();
+            User user = null;
+
+            if (result.next()) {
+                user = new User(
+                        result.getInt("id"),
+                        result.getString("name"),
+                        result.getString("email"),
+                        result.getString("password"),
+                        result.getString("address"),
+                        result.getString("login"),
+                        null);
+            }
+
+            stmt.close();
+            result.close();
+
+            return user;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Erro ao obter usuário pelo login.");
+            return null;
+        }
+    }
+
+    public boolean identify(String login, String password) {
+        try {
+            String sql = "SELECT * FROM \"user\" WHERE login = ? AND password = ?";
+            PreparedStatement stmt = this.connection.prepareStatement(sql);
+
+            stmt.setString(1, login);
+            stmt.setString(2, password);
+
+            ResultSet result = stmt.executeQuery();
+            boolean found = result.next();
+
+            stmt.close();
+            result.close();
+
+            return found;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Erro ao identificar usuário.");
+            return false;
+        }
+    }
+
     public ArrayList<User> getAllUsers() {
         try {
 
             ArrayList<User> data = new ArrayList<User>();
 
-            PreparedStatement ps = this.connection.prepareStatement("SELECT * FROM user");
+            PreparedStatement ps = this.connection.prepareStatement("SELECT * FROM \"user\"");
             ResultSet result = ps.executeQuery();
 
             while (result.next()) {
@@ -108,7 +158,8 @@ public class UserDAO {
             String sql;
             User oldUser = this.getUser(user);
 
-            sql = "UPDATE user SET name, email, password, address, login = ? WHERE id = " + user.getId();
+            sql = "UPDATE \"user\" SET name = ?, email = ?, password = ?, address = ?, login = ? WHERE id = "
+                    + user.getId();
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setString(1, String.valueOf(user.getName()).isEmpty() ? oldUser.getName()
@@ -137,11 +188,11 @@ public class UserDAO {
                 JOptionPane.showMessageDialog(null, "Erro: Usuário inválido.");
                 return;
             }
-    
+
             User existingUser = this.getUser(user);
 
             if (existingUser != null && existingUser.getId() > 0) {
-                String sql = "DELETE FROM user WHERE id_user = ?";
+                String sql = "DELETE FROM \"user\" WHERE id = ?";
                 try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
                     stmt.setInt(1, user.getId());
                     stmt.execute();

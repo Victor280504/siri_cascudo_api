@@ -27,7 +27,7 @@ public class ProductDAO {
         try {
             String sql;
 
-            sql = "INSERT INTO product(description, image, quantity, price, id_category) VALUES(?)";
+            sql = "INSERT INTO product(description, image, quantity, price, id_category) VALUES(?, ?, ?, ?, ?)";
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setString(1, product.getDescription());
@@ -113,7 +113,7 @@ public class ProductDAO {
 
             Product oldProduct = this.getProduct(product);
 
-            sql = "UPDATE product SET description, image, quantitiy, price, id_category = ? WHERE id = " + product.getId();
+            sql = "UPDATE product SET description = ?, image = ?, quantity = ?, price = ?, id_category = ? WHERE id = " + product.getId();
             PreparedStatement stmt = this.connection.prepareStatement(sql);
 
             stmt.setString(1, String.valueOf(product.getDescription()).isEmpty() ? oldProduct.getDescription()
