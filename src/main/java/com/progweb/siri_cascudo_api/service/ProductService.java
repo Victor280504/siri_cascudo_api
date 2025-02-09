@@ -4,6 +4,7 @@ import com.progweb.siri_cascudo_api.dto.ProductDTO;
 import com.progweb.siri_cascudo_api.model.Product;
 import com.progweb.siri_cascudo_api.repository.ProductRepository;
 import com.progweb.siri_cascudo_api.util.LocalStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +15,10 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
+    @Autowired
     private final ProductRepository productRepository;
+
+    @Autowired
     private final LocalStorageService localStorageService;
     // private final FirebaseStorageService firebaseStorageService; // Firebase
     // desativado por enquanto

@@ -117,8 +117,8 @@ CREATE TABLE public.sale_product (
 );
 ALTER TABLE public.sale_product OWNER TO postgres;
 
--- Tabela: costumer
-CREATE TABLE public."costumer" (
+-- Tabela: user
+CREATE TABLE public."user" (
     id integer NOT NULL,
     name character varying,
     email character varying,
