@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
 
     @Autowired
@@ -33,9 +34,9 @@ public class AuthController {
     }
 
     // Endpoint de logout (opcional, depende da implementação)
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<String>("Sessão Encerrada",HttpStatus.NO_CONTENT);
     }
 }

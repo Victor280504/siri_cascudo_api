@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import com.progweb.siri_cascudo_api.dto.User.UserDTO;
 import com.progweb.siri_cascudo_api.dto.User.UserUpdateDTO;
-import com.progweb.siri_cascudo_api.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.progweb.siri_cascudo_api.service.UserService;import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -19,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UserController {
 
     @Autowired
