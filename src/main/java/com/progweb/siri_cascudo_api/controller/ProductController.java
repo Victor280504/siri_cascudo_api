@@ -44,7 +44,6 @@ public class ProductController {
             @Valid @RequestParam String name,
             @RequestParam String description,
             @RequestParam Double price,
-            @RequestParam int quantity,
             @RequestParam Long idCategory,
             @RequestParam("image") MultipartFile image,
             BindingResult bindingResult) throws IOException {
@@ -56,7 +55,6 @@ public class ProductController {
             return ResponseEntity.badRequest().body(errors);
         }
 
-        ProductDTO product = productService.createProduct(name, description, price, quantity, idCategory, image);
         ProductDTO product = productService.createProduct(name, description, price, idCategory, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
