@@ -16,8 +16,6 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final LocalStorageService localStorageService;
-    // private final FirebaseStorageService firebaseStorageService; // Firebase
-    // desativado por enquanto
 
     public ProductService(ProductRepository productRepository, LocalStorageService localStorageService) {
         this.productRepository = productRepository;
@@ -36,13 +34,11 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
     }
 
-    public ProductDTO createProduct(String name, String description, Double price, int quantity, Long idCategory,
-            MultipartFile image) throws IOException {
+    public ProductDTO createProduct(String name, String description, Double price, Long idCategory, MultipartFile image)
+            throws IOException {
         String imageUrl = localStorageService.saveImage(image);
-        // String imageUrl = firebaseStorageService.uploadImage(image.getBytes(),
-        // image.getOriginalFilename()); // Firebase desativado
 
-        Product product = new Product(null, name, description, imageUrl, quantity, price, idCategory);
+        Product product = new Product(null, name, description, imageUrl, 0, price, idCategory);
         return new ProductDTO(productRepository.save(product));
     }
 
@@ -57,12 +53,11 @@ public class ProductService {
         product.setQuantity(quantity);
         product.setIdCategory(idCategory);
 
-       
         if (image != null && !image.isEmpty()) {
             if (product.getImage() != null && !product.getImage().isEmpty()) {
-                localStorageService.deleteImage(product.getImage()); 
+                localStorageService.deleteImage(product.getImage());
             }
-            String imageUrl = localStorageService.saveImage(image); 
+            String imageUrl = localStorageService.saveImage(image);
             product.setImage(imageUrl);
         }
 
@@ -70,6 +65,9 @@ public class ProductService {
     }
 
     public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new RuntimeException("Produto não encontrado");
+        }
         productRepository.deleteById(id);
     }
 }

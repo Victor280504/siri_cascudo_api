@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/products")
 @CrossOrigin(origins = "*")
@@ -24,6 +26,7 @@ public class ProductController {
         this.productService = productService;
     }
 
+    // Qualquer usuário pode acessar produtos (não autenticado)
     @GetMapping
     public List<ProductDTO> getAllProducts() {
         return productService.getAllProducts();
@@ -34,7 +37,9 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
+    // Apenas ADMIN pode adicionar produtos
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createProduct(
             @Valid @RequestParam String name,
             @RequestParam String description,
@@ -52,10 +57,29 @@ public class ProductController {
         }
 
         ProductDTO product = productService.createProduct(name, description, price, quantity, idCategory, image);
+        ProductDTO product = productService.createProduct(name, description, price, idCategory, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
 
+    // Apenas ADMIN pode atualizar produtos
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> updateProduct(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam Double price,
+            @RequestParam int quantity,
+            @RequestParam Long idCategory,
+            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+
+        ProductDTO updatedProduct = productService.updateProduct(id, name, description, price, quantity, idCategory, image);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    // Apenas ADMIN pode deletar produtos
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok("Produto deletado com sucesso!");
