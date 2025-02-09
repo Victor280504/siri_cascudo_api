@@ -34,7 +34,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll() // Rotas de autenticação públicas
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // Rotas de administrador
                         .requestMatchers("/api/u/**").permitAll() // Rotas específicas terminando com /u
+<<<<<<< Updated upstream
                         .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
+=======
+                        
+                        // Rotas públicas para produtos e categorias
+                        .requestMatchers("/api/products", "/api/products/{id}").permitAll()
+                        .requestMatchers("/api/categories", "/api/categories/{id}").permitAll()
+
+                        // Apenas ADMIN pode criar, atualizar e deletar produtos/categorias
+                        .requestMatchers("/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/**").hasRole("ADMIN")
+
+                        // Todas as outras rotas /api/** exigem autenticação
+                        .requestMatchers("/api/**").authenticated()
+>>>>>>> Stashed changes
                         .anyRequest().denyAll() // Bloqueia todas as outras rotas não mapeadas
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
@@ -54,4 +68,11 @@ public class SecurityConfig {
             }
         };
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+=======
+}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
