@@ -93,7 +93,7 @@ CREATE TABLE public.sale (
     id integer NOT NULL,
     date date,
     payment_method character varying,
-    id_customer bigint NOT NULL
+    id_user bigint NOT NULL
 );
 ALTER TABLE public.sale OWNER TO postgres;
 
@@ -117,33 +117,33 @@ CREATE TABLE public.sale_product (
 );
 ALTER TABLE public.sale_product OWNER TO postgres;
 
--- Tabela: customer
-CREATE TABLE public."customer" (
+-- Tabela: costumer
+CREATE TABLE public."costumer" (
     id integer NOT NULL,
     name character varying,
     email character varying,
     password character varying,
     address character varying
 );
-ALTER TABLE public."customer" OWNER TO postgres;
+ALTER TABLE public."user" OWNER TO postgres;
 
--- Sequência: customer_id_seq
-CREATE SEQUENCE public.customer_id_seq
+-- Sequência: user_id_seq
+CREATE SEQUENCE public.user_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-ALTER SEQUENCE public.customer_id_seq OWNER TO postgres;
-ALTER SEQUENCE public.customer_id_seq OWNED BY public."customer".id;
+ALTER SEQUENCE public.user_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.user_id_seq OWNED BY public."user".id;
 
--- Tabela: customer_roles
-CREATE TABLE public.customer_roles (
-    id_customer bigint NOT NULL,
+-- Tabela: user_roles
+CREATE TABLE public.user_roles (
+    id_user bigint NOT NULL,
     role character varying NOT NULL
 );
-ALTER TABLE public.customer_roles OWNER TO postgres;
+ALTER TABLE public.user_roles OWNER TO postgres;
 
 -- Definindo valores padrão para as colunas de ID
 ALTER TABLE ONLY public.category
@@ -158,8 +158,8 @@ ALTER TABLE ONLY public.product
 ALTER TABLE ONLY public.sale
     ALTER COLUMN id SET DEFAULT nextval('public.sale_id_seq'::regclass);
 
-ALTER TABLE ONLY public."customer"
-    ALTER COLUMN id SET DEFAULT nextval('public.customer_id_seq'::regclass);
+ALTER TABLE ONLY public."user"
+    ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
 
 -- Inserindo dados nas tabelas
 COPY public.category (id, name) FROM stdin;
@@ -182,7 +182,7 @@ COPY public.recipe (id_ingredient, id_product, quantity) FROM stdin;
 2   2   1
 \.
 
-COPY public.sale (id, date, payment_method, id_customer) FROM stdin;
+COPY public.sale (id, date, payment_method, id_user) FROM stdin;
 1   2024-01-01  Cartão  1
 2   2024-01-02  Dinheiro  2
 \.
@@ -192,14 +192,14 @@ COPY public.sale_product (id_sale, id_product, quantity, value) FROM stdin;
 2   2   2   30.00
 \.
 
-COPY public."customer" (id, name, email, password, address) FROM stdin;
+COPY public."user" (id, name, email, password, address) FROM stdin;
 1   Usuário1  usuario1@example.com  senha1  Endereço1
 2   Usuário2  usuario2@example.com  senha2  Endereço2
 \.
 
-COPY public.customer_roles (id_customer, role) FROM stdin;
+COPY public.user_roles (id_user, role) FROM stdin;
 1   ROLE_ADMIN
-2   ROLE_customer
+2   ROLE_user
 \.
 
 -- Definindo chaves primárias
@@ -221,11 +221,11 @@ ALTER TABLE ONLY public.sale
 ALTER TABLE ONLY public.sale_product
     ADD CONSTRAINT sale_product_pkey PRIMARY KEY (id_sale, id_product);
 
-ALTER TABLE ONLY public."customer"
-    ADD CONSTRAINT customer_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public."user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY public.customer_roles
-    ADD CONSTRAINT customer_roles_pkey PRIMARY KEY (id_customer, role);
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id_user, role);
 
 -- Definindo chaves estrangeiras
 ALTER TABLE ONLY public.product
@@ -238,7 +238,7 @@ ALTER TABLE ONLY public.recipe
     ADD CONSTRAINT recipe_id_product_fkey FOREIGN KEY (id_product) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE ONLY public.sale
-    ADD CONSTRAINT sale_id_customer_fkey FOREIGN KEY (id_customer) REFERENCES public."customer"(id) ON UPDATE CASCADE ON DELETE SET NULL;
+    ADD CONSTRAINT sale_id_user_fkey FOREIGN KEY (id_user) REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE ONLY public.sale_product
     ADD CONSTRAINT sale_product_id_product_fkey FOREIGN KEY (id_product) REFERENCES public.product(id) ON UPDATE CASCADE ON DELETE SET NULL;
@@ -246,8 +246,8 @@ ALTER TABLE ONLY public.sale_product
 ALTER TABLE ONLY public.sale_product
     ADD CONSTRAINT sale_product_id_sale_fkey FOREIGN KEY (id_sale) REFERENCES public.sale(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE ONLY public.customer_roles
-    ADD CONSTRAINT customer_roles_id_customer_fkey FOREIGN KEY (id_customer) REFERENCES public."customer"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_id_user_fkey FOREIGN KEY (id_user) REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 -- Função para recalcular a quantidade de produtos com base nos ingredientes
 CREATE OR REPLACE FUNCTION public.update_product_quantity()
