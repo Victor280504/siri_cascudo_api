@@ -52,7 +52,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-<<<<<<< Updated upstream
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -66,7 +65,4 @@ public class SecurityConfig {
             }
         };
     }
-}}
-=======
 }
->>>>>>> Stashed changes
