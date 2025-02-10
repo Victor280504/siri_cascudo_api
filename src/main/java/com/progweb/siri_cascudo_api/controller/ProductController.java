@@ -54,7 +54,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateResponseDTO> createProduct(
             @Valid @ModelAttribute CreateProductDTO productDTO,
-            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+            @RequestParam(value = "image", required = false) MultipartFile imageFile) {
 
         CreateResponseDTO response = productService.createProduct(productDTO, imageFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

@@ -32,23 +32,16 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Rotas de autenticação públicas
+                        .requestMatchers("/uploads/**").permitAll() // Rotas de autenticação públicas
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // Rotas de administrador
                         .requestMatchers("/api/u/**").permitAll() // Rotas específicas terminando com /u
-                        .requestMatchers("/api/products", "/api/products/**").permitAll() // Qualquer usuário pode ver os produtos
-                        .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
-                        
-                        // Rotas públicas para produtos, categorias
                         .requestMatchers("/api/products", "/api/products/{id}").permitAll()
-                        .requestMatchers("/api/categories", "/api/categories/{id}").permitAll()
-
-                        // Apenas ADMIN pode criar, atualizar e deletar produtos/categorias/recipes
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/categories", "/api/categories/{id}").permitAll()
                         .requestMatchers("/api/categories/**").hasRole("ADMIN")
                         .requestMatchers("/api/recipes/**").hasRole("ADMIN")
                         .requestMatchers("/api/ingredients/**").hasRole("ADMIN")
-
-                        // Todas as outras rotas /api/** exigem autenticação
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
                         .anyRequest().denyAll() // Bloqueia todas as outras rotas não mapeadas
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
