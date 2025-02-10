@@ -117,15 +117,15 @@ CREATE TABLE public.sale_product (
 );
 ALTER TABLE public.sale_product OWNER TO postgres;
 
--- Tabela: user
-CREATE TABLE public."user" (
+-- Tabela: customer
+CREATE TABLE public."customer" (
     id integer NOT NULL,
     name character varying,
     email character varying,
     password character varying,
     address character varying
 );
-ALTER TABLE public."user" OWNER TO postgres;
+ALTER TABLE public."customer" OWNER TO postgres;
 
 -- Sequência: user_id_seq
 CREATE SEQUENCE public.user_id_seq

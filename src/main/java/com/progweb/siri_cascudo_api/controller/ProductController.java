@@ -1,17 +1,18 @@
 package com.progweb.siri_cascudo_api.controller;
 
-import com.progweb.siri_cascudo_api.dto.ProductDTO;
+import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
+import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
+import com.progweb.siri_cascudo_api.dto.Product.ProductDTO;
+import com.progweb.siri_cascudo_api.dto.Product.UpdateProductDTO;
 import com.progweb.siri_cascudo_api.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.validation.BindingResult;
-import org.springframework.http.HttpStatus;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -24,40 +25,63 @@ public class ProductController {
         this.productService = productService;
     }
 
+    /**
+     * Retorna a lista de todos os produtos disponíveis.
+     * Acesso: Público (qualquer usuário pode visualizar).
+     */
     @GetMapping
-    public List<ProductDTO> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductDTO>> getAllProducts() {
+        List<ProductDTO> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
     }
 
+    /**
+     * Retorna um produto específico pelo ID.
+     * Acesso: Público.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+        ProductDTO product = productService.getProductById(id);
+        return ResponseEntity.ok(product);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createProduct(
-            @Valid @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam Double price,
-            @RequestParam int quantity,
-            @RequestParam Long idCategory,
-            @RequestParam("image") MultipartFile image,
-            BindingResult bindingResult) throws IOException {
+    /**
+     * Cria um novo produto.
+     * Acesso: Apenas ADMIN.
+     */
+    @PostMapping(consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CreateResponseDTO> createProduct(
+            @Valid @ModelAttribute UpdateProductDTO productDTO,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
 
-        if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors().stream()
-                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
-
-        ProductDTO product = productService.createProduct(name, description, price, quantity, idCategory, image);
-        return ResponseEntity.status(HttpStatus.CREATED).body(product);
+        CreateResponseDTO response = productService.createProduct(productDTO, imageFile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * Atualiza um produto existente.
+     * Acesso: Apenas ADMIN.
+     */
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UpdateResponseDTO> updateProduct(
+            @PathVariable Long id,
+            @Valid @ModelAttribute UpdateProductDTO productUpdateDTO,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        UpdateResponseDTO updatedProduct = productService.updateProduct(id, productUpdateDTO, imageFile);
+        return ResponseEntity.ok(updatedProduct);
+    }
+
+    /**
+     * Deleta um produto pelo ID.
+     * Acesso: Apenas ADMIN.
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CreateResponseDTO> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok("Produto deletado com sucesso!");
+        return ResponseEntity.ok(new CreateResponseDTO(id.toString(), "Produto deletado com sucesso!"));
     }
 }
