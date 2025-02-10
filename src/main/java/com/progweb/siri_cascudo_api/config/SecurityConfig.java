@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
                         .requestMatchers("/api/categories/**").hasRole("ADMIN")
                         .requestMatchers("/api/recipes/**").hasRole("ADMIN")
+                        .requestMatchers("/api/ingredients/**").hasRole("ADMIN")
 
                         // Todas as outras rotas /api/** exigem autenticação
                         .requestMatchers("/api/**").authenticated()

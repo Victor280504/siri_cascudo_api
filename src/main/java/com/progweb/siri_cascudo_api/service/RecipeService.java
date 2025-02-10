@@ -6,6 +6,9 @@ import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
 import com.progweb.siri_cascudo_api.model.Recipe;
 import com.progweb.siri_cascudo_api.model.RecipeId;
 import com.progweb.siri_cascudo_api.repository.RecipeRepository;
+import com.progweb.siri_cascudo_api.repository.ProductRepository;
+import com.progweb.siri_cascudo_api.repository.IngredientRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,12 @@ public class RecipeService {
     @Autowired
     private RecipeRepository recipeRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
+
     public List<RecipeDTO> getAllRecipes() {
         return recipeRepository.findAll()
                 .stream()
@@ -26,19 +35,32 @@ public class RecipeService {
     }
 
     public List<RecipeDTO> getRecipesByProductId(Long productId) {
-        return recipeRepository.findById_IdProduct(productId) // Correção do nome do método
+        return recipeRepository.findById_IdProduct(productId)
                 .stream()
                 .map(this::mapToRecipeDTO)
                 .collect(Collectors.toList());
     }
 
     public CreateResponseDTO createRecipe(RecipeDTO recipeDTO) {
+        // Verifica se o produto existe
+        productRepository.findById(recipeDTO.getIdProduct())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Produto não encontrado", "id", recipeDTO.getIdProduct()));
+
+        // Verifica se o ingrediente existe
+        ingredientRepository.findById(recipeDTO.getIdIngredient())
+                .orElseThrow(() -> new ResourceNotFoundException("Ingrediente não encontrado", "id",
+                        recipeDTO.getIdIngredient()));
+
+        // Cria a chave composta para a receita
         RecipeId id = new RecipeId(recipeDTO.getIdProduct(), recipeDTO.getIdIngredient());
 
+        // Verifica se a receita já existe
         if (recipeRepository.existsById(id)) {
-            throw new IllegalArgumentException("Essa receita já existe.");
+            throw new IllegalArgumentException("Esta receita já foi cadastrada.");
         }
 
+        // Cria e salva a nova receita
         Recipe recipe = new Recipe();
         recipe.setId(id);
         recipe.setQuantity(recipeDTO.getQuantity());
@@ -47,11 +69,23 @@ public class RecipeService {
         return new CreateResponseDTO(id.toString(), "Receita criada com sucesso.");
     }
 
+    public CreateResponseDTO updateRecipeQuantity(Long idProduct, Long idIngredient, Integer newQuantity) {
+        RecipeId id = new RecipeId(idProduct, idIngredient);
+
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Receita não encontrada", "id", id));
+
+        recipe.setQuantity(newQuantity);
+        recipeRepository.save(recipe);
+
+        return new CreateResponseDTO(id.toString(), "Quantidade da receita atualizada com sucesso.");
+    }
+
     public CreateResponseDTO deleteRecipe(Long idProduct, Long idIngredient) {
         RecipeId id = new RecipeId(idProduct, idIngredient);
 
         Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Recipe", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Receita não encontrada", "id", id));
 
         recipeRepository.delete(recipe);
         return new CreateResponseDTO(id.toString(), "Receita deletada com sucesso.");

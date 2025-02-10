@@ -36,8 +36,20 @@ public class RecipeController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{idProduct}/{idIngredient}")
+    public ResponseEntity<CreateResponseDTO> updateRecipeQuantity(
+            @PathVariable Long idProduct,
+            @PathVariable Long idIngredient,
+            @RequestBody RecipeDTO recipeDTO) {
+
+        CreateResponseDTO response = recipeService.updateRecipeQuantity(idProduct, idIngredient,
+                recipeDTO.getQuantity());
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{idProduct}/{idIngredient}")
-    public ResponseEntity<CreateResponseDTO> deleteRecipe(@PathVariable Long idProduct, @PathVariable Long idIngredient) {
+    public ResponseEntity<CreateResponseDTO> deleteRecipe(@PathVariable Long idProduct,
+            @PathVariable Long idIngredient) {
         CreateResponseDTO response = recipeService.deleteRecipe(idProduct, idIngredient);
         return ResponseEntity.ok(response);
     }
