@@ -31,9 +31,9 @@ public class CategoryService {
         return mapToCategoryDTO(category);
     }
 
-    public CreateResponseDTO createCategory(String name) {
+    public CreateResponseDTO createCategory(CategoryDTO categoryDTO) {
         Category category = new Category();
-        category.setName(name);
+        category.setName(categoryDTO.getName());
         Category savedCategory = categoryRepository.save(category);
         return new CreateResponseDTO(savedCategory.getId().toString(), "Categoria criada com sucesso.");
     }
@@ -41,24 +41,24 @@ public class CategoryService {
 
     public UpdateResponseDTO<CategoryDTO> updateCategory(Long id, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
-    
-        category.setName(categoryDTO.getName());
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
+
+        if (categoryDTO.getName() != null && !categoryDTO.getName().isEmpty()) {
+            category.setName(categoryDTO.getName());
+        }
         Category updatedCategory = categoryRepository.save(category);
-    
-        CategoryDTO updatedCategoryDTO = new CategoryDTO(updatedCategory.getId(), updatedCategory.getName());
-    
+
         return new UpdateResponseDTO<>(
                 updatedCategory.getId().toString(),
                 "Categoria atualizada com sucesso.",
-                updatedCategoryDTO
+                mapToCategoryDTO(updatedCategory)
         );
     }
 
     public CreateResponseDTO deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
-        
+
         categoryRepository.delete(category);
         return new CreateResponseDTO(id.toString(), "Categoria deletada com sucesso.");
     }

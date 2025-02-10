@@ -1,6 +1,7 @@
 package com.progweb.siri_cascudo_api.controller;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
+import com.progweb.siri_cascudo_api.dto.Product.CreateProductDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.ProductDTO;
 import com.progweb.siri_cascudo_api.dto.Product.UpdateProductDTO;
@@ -52,7 +53,7 @@ public class ProductController {
     @PostMapping(consumes = "multipart/form-data")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CreateResponseDTO> createProduct(
-            @Valid @ModelAttribute UpdateProductDTO productDTO,
+            @Valid @ModelAttribute CreateProductDTO productDTO,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
 
         CreateResponseDTO response = productService.createProduct(productDTO, imageFile);
@@ -67,7 +68,7 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UpdateResponseDTO> updateProduct(
             @PathVariable Long id,
-            @Valid @ModelAttribute UpdateProductDTO productUpdateDTO,
+            @Valid UpdateProductDTO productUpdateDTO,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
 
         UpdateResponseDTO updatedProduct = productService.updateProduct(id, productUpdateDTO, imageFile);

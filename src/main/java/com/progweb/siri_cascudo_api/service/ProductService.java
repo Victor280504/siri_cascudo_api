@@ -1,6 +1,7 @@
 package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
+import com.progweb.siri_cascudo_api.dto.Product.CreateProductDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.ProductDTO;
 import com.progweb.siri_cascudo_api.dto.Product.UpdateProductDTO;
@@ -38,7 +39,7 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public CreateResponseDTO createProduct(UpdateProductDTO productDTO, MultipartFile imageFile) {
+    public CreateResponseDTO createProduct(CreateProductDTO productDTO, MultipartFile imageFile) {
         Product product = new Product();
         product.setName(productDTO.getName());
         product.setDescription(productDTO.getDescription());
@@ -65,14 +66,11 @@ public class ProductService {
         if (productDTO.getDescription() != null && !productDTO.getDescription().isEmpty()) {
             product.setDescription(productDTO.getDescription());
         }
-        if (Objects.nonNull(productDTO.getPrice())) {
+        if (productDTO.getPrice() != product.getPrice()) {
             product.setPrice(productDTO.getPrice());
         }
-        if (Objects.nonNull(productDTO.getQuantity())) {
+        if (productDTO.getQuantity() != product.getQuantity()) {
             product.setQuantity(productDTO.getQuantity());
-        }
-        if (Objects.nonNull(productDTO.getIdCategory())) {
-            product.setIdCategory(productDTO.getIdCategory());
         }
 
         if (imageFile != null && !imageFile.isEmpty()) {

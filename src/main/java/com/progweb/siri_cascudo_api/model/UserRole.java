@@ -3,7 +3,7 @@ package com.progweb.siri_cascudo_api.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "custumer_roles")
+@Table(name = "customer_roles")
 public class UserRole {
     @EmbeddedId
     private UserRoleId id; // Chave primária composta
