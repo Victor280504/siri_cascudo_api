@@ -14,7 +14,7 @@ public class User {
     private String email;
     private String password;
     private String address;
-
+    private double wallet;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<UserRole> roles;
 

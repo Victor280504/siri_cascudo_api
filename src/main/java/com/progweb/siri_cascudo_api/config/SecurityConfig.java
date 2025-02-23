@@ -4,6 +4,7 @@ import com.progweb.siri_cascudo_api.filter.JwtTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,20 +32,28 @@ public class SecurityConfig {
                     return corsConfiguration;
                 }))
                 .authorizeHttpRequests(auth -> auth
+                        // publics
                         .requestMatchers("/api/auth/**").permitAll() // Rotas de autenticação públicas
                         .requestMatchers("/uploads/**").permitAll() // Rotas de autenticação públicas
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Rotas de administrador
-                        .requestMatchers("/api/u/**").permitAll() // Rotas específicas terminando com /u
-                        .requestMatchers("/api/products", "/api/products/{id}").permitAll()
-                        .requestMatchers("/api/products/**").hasRole("ADMIN")
-                        .requestMatchers("/api/categories", "/api/categories/{id}").permitAll()
-                        .requestMatchers("/api/categories/**").hasRole("ADMIN")
-                        .requestMatchers("/api/recipes/**").hasRole("ADMIN")
-                        .requestMatchers("/api/ingredients/**").hasRole("ADMIN")
-                        .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
-                        .anyRequest().denyAll() // Bloqueia todas as outras rotas não mapeadas
+                        .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ingredients", "/api/ingredients/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/sales", "/api/sales/{id}").permitAll()
+
+                        // Restringindo POST, PUT e DELETE para ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/sales").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/products", "/api/categories", "/api/ingredients").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**", "/api/categories/**", "/api/ingredients/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/categories/**", "/api/ingredients/**").hasRole("ADMIN")
+
+                        // Todas as outras rotas exigem autenticação
+                        .requestMatchers("/api/**").authenticated()
+
+                        // Bloqueia qualquer outra rota não mapeada
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
@@ -61,4 +70,5 @@ public class SecurityConfig {
             }
         };
     }
+
 }

@@ -50,7 +50,13 @@ public class RecipeController {
     @DeleteMapping("/{idProduct}/{idIngredient}")
     public ResponseEntity<CreateResponseDTO> deleteRecipe(@PathVariable Long idProduct,
             @PathVariable Long idIngredient) {
-        CreateResponseDTO response = recipeService.deleteRecipe(idProduct, idIngredient);
+        CreateResponseDTO response = recipeService.deleteRecipeByRecipe(idProduct, idIngredient);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{idProduct}")
+    public ResponseEntity<CreateResponseDTO> deleteRecipeByProduct(@PathVariable Long idProduct) {
+        CreateResponseDTO response = recipeService.deleteRecipeByProduct(idProduct);
         return ResponseEntity.ok(response);
     }
 }

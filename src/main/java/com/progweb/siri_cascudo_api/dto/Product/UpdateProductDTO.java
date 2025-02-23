@@ -1,9 +1,6 @@
 package com.progweb.siri_cascudo_api.dto.Product;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +15,8 @@ public class UpdateProductDTO {
     @Size(max = 500, message = "A descrição pode ter no máximo 500 caracteres.")
     private String description;
 
+    //@NotNull(message = "A Imagem é obrigatória.")
+      @FileSize(max = 5 * 1024 * 1024, message = "O tamanho do arquivo não pode exceder 5MB.")
     private MultipartFile image;
 
     //@Min(value = 0, message = "A quantidade não pode ser negativa.")
@@ -27,4 +26,9 @@ public class UpdateProductDTO {
     private double price;
 
     private Long idCategory;
+
+    @AssertTrue(message = "A imagem não pode ser vazia.")
+    public boolean isValidImage() {
+        return image == null || !image.isEmpty();
+    }
 }

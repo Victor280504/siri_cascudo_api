@@ -41,17 +41,16 @@ public class UserController {
     public ResponseEntity<UserProfileDTO> getProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName(); // O email é o "username" no contexto de segurança
-        // Busca o perfil do usuário pelo email
         UserProfileDTO userProfile = userService.getProfile(email);
         return new ResponseEntity<>(userProfile, HttpStatus.OK);
     }
 
     @PutMapping
-    public ResponseEntity<UpdateResponseDTO> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+    public ResponseEntity<UpdateResponseDTO<UserDTO>> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName(); // O email é o "username" no contexto de segurança
-        UpdateResponseDTO userDTO = userService.updateUser(email, userUpdateDTO);
-        return new ResponseEntity<UpdateResponseDTO>(userDTO, HttpStatus.OK);
+        UpdateResponseDTO<UserDTO> userDTO = userService.updateUser(email, userUpdateDTO);
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
     @DeleteMapping
@@ -59,6 +58,6 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         CreateResponseDTO deletedUser = userService.deleteUser(email);
-        return new ResponseEntity<CreateResponseDTO>(deletedUser, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(deletedUser, HttpStatus.NO_CONTENT);
     }
 }

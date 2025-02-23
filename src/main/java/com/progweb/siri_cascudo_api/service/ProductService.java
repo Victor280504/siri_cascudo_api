@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -43,8 +44,8 @@ public class ProductService {
         Product product = new Product();
         product.setName(productDTO.getName());
         product.setDescription(productDTO.getDescription());
-        product.setPrice(Objects.nonNull(productDTO.getPrice()) ? productDTO.getPrice() : 0.0);
-        product.setQuantity(Objects.nonNull(productDTO.getQuantity()) ? productDTO.getQuantity() : 0);
+        product.setPrice(productDTO.getPrice());
+        product.setQuantity(productDTO.getQuantity());
         product.setIdCategory(productDTO.getIdCategory());
 
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -56,7 +57,7 @@ public class ProductService {
         return new CreateResponseDTO(savedProduct.getId().toString(), "Produto criado com sucesso.");
     }
 
-    public UpdateResponseDTO updateProduct(Long id, UpdateProductDTO productDTO, MultipartFile imageFile) {
+    public UpdateResponseDTO<ProductDTO> updateProduct(Long id, UpdateProductDTO productDTO, MultipartFile imageFile) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", "id", id));
 
@@ -73,17 +74,26 @@ public class ProductService {
             product.setQuantity(productDTO.getQuantity());
         }
 
+        if (productDTO.getIdCategory() != null && !Objects.equals(productDTO.getIdCategory(), product.getIdCategory())) {
+            product.setIdCategory(productDTO.getIdCategory());
+        }
+
         if (imageFile != null && !imageFile.isEmpty()) {
             String imageName = localStorageService.saveImage(imageFile);
-            product.setImage(imageName);
+            boolean res = localStorageService.updateImage(product.getImage());
+            if (res) {
+                product.setImage(imageName);
+            } else {
+                clearDeletedImageFiles();
+            }
         }
 
         Product updatedProduct = productRepository.save(product);
-        return new UpdateResponseDTO(updatedProduct.getId().toString(), "Produto atualizado com sucesso.",
+        return new UpdateResponseDTO<>(updatedProduct.getId().toString(), "Produto atualizado com sucesso.",
                 mapToProductDTO(updatedProduct));
     }
 
-    public CreateResponseDTO deleteProduct(Long id) {
+    public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", "id", id));
 
@@ -92,7 +102,6 @@ public class ProductService {
         }
 
         productRepository.delete(product);
-        return new CreateResponseDTO(id.toString(), "Produto deletado com sucesso.");
     }
 
     private ProductDTO mapToProductDTO(Product product) {
@@ -106,4 +115,40 @@ public class ProductService {
         productDTO.setImage(product.getImage());
         return productDTO;
     }
+
+    public List<String> getAllImageStrings() {
+
+        List<ProductDTO> products = productRepository.findAll()
+                .stream()
+                .map(this::mapToProductDTO)
+                .toList();
+
+        return products.stream().map(ProductDTO::getImage)
+                .collect(Collectors.toList());
+    }
+
+    public void clearDeletedImageFiles() {
+        List<String> images = getAllImageStrings();
+        File folder = new File("caminho/da/pasta");
+
+        // Lista todos os arquivos na pasta
+        File[] listOfFiles = folder.listFiles();
+
+        // Verifica se a pasta é válida e não está vazia
+        if (listOfFiles != null) {
+            for (File file : listOfFiles) {
+                if (file.isFile() && !images.contains(file.getName())) {
+                    // Deleta o arquivo se não estiver na lista
+                    if (file.delete()) {
+                        System.out.println("Arquivo deletado: " + file.getName());
+                    } else {
+                        System.out.println("Falha ao deletar arquivo: " + file.getName());
+                    }
+                }
+            }
+        } else {
+            System.out.println("A pasta não existe ou está vazia.");
+        }
+    }
+
 }

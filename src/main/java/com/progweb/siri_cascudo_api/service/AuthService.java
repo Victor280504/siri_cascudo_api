@@ -46,6 +46,7 @@ public class AuthService {
         user.setEmail(userRegisterDTO.getEmail());
         user.setPassword(PasswordUtil.encryptPassword(userRegisterDTO.getPassword())); // Criptografa a senha
         user.setAddress(userRegisterDTO.getAddress());
+        user.setWallet(100.0);
 
         // Salva o usuário no banco de dados
         User savedUser = userRepository.save(user);

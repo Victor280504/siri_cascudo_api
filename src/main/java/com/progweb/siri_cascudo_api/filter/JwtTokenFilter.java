@@ -2,7 +2,6 @@ package com.progweb.siri_cascudo_api.filter;
 
 import com.progweb.siri_cascudo_api.util.JwtUtil;
 import io.jsonwebtoken.Claims;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,9 +43,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             List<String> roles = claims.get("roles", List.class);
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    email, null, roles.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList())
+                    email,
+                    null,
+                    roles.stream()
+                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())) // Garante que tenha "ROLE_"
+                            .collect(Collectors.toList())
             );
 
             SecurityContextHolder.getContext().setAuthentication(auth);

@@ -12,12 +12,14 @@ public class CreateProductDTO {
     @Size(min = 3, max = 100, message = "O nome deve ter entre 3 e 100 caracteres.")
     private String name;
 
+    @NotBlank(message = "A descrição não pode ser vazia.")
     @Size(max = 500, message = "A descrição pode ter no máximo 500 caracteres.")
     private String description;
 
+    @NotNull(message = "A Imagem é obrigatória.")
     private MultipartFile image;
 
-    @Min(value = 0, message = "A quantidade não pode ser negativa.")
+    @Min(value = 1, message = "A quantidade deve ser pelo menos 1.")
     private int quantity;
 
     @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")

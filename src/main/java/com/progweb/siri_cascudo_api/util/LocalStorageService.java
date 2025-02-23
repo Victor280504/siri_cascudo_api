@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +20,7 @@ public class LocalStorageService {
     private final String uploadDir;
     private final String baseUrl;
     private static final List<String> ALLOWED_TYPES = List.of("image/jpeg", "image/png");
-    private static final long MAX_SIZE = 2 * 1024 * 1024; // 2MB
+    private static final long MAX_SIZE = 10 * 1024 * 1024;
 
     @Autowired
     public LocalStorageService(AppConfig appConfig) {
@@ -26,8 +28,9 @@ public class LocalStorageService {
         this.baseUrl = appConfig.getBaseUrl();
 
         try {
-            Files.createDirectories(Paths.get(uploadDir));
-            System.out.println("Diretório de uploads criado em: " + Paths.get(uploadDir).toAbsolutePath());
+            Path path = Paths.get(uploadDir);
+            Files.createDirectories(path);
+            System.out.println("Diretório de uploads criado em: " + path.toAbsolutePath());
         } catch (IOException e) {
             throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     "Erro ao criar diretório", "Não foi possível criar o diretório de uploads.");
@@ -41,8 +44,30 @@ public class LocalStorageService {
             // Gera um nome único para a imagem
             String fileExtension = getFileExtension(file.getContentType());
             String fileName = UUID.randomUUID() + "." + fileExtension;
+            Path filePath = getFilePathByName(fileName);
+            System.out.println("Path: " + filePath);
+            System.out.println("Salvando arquivo em: " + filePath.toAbsolutePath());
+            Files.write(filePath, file.getBytes());
 
-            Path filePath = Paths.get(uploadDir, fileName);
+            // Retorna o caminho completo da imagem
+            String fullPath = baseUrl + "/" + uploadDir + fileName;
+            System.out.println("Caminho completo da imagem: " + fullPath);
+            return fullPath;
+
+        } catch (IOException e) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Erro ao salvar imagem", "Não foi possível armazenar a imagem no servidor.");
+        }
+    }
+
+    public String saveImage(MultipartFile file, String name) {
+        validateImage(file);
+
+        try {
+            String fileExtension = getFileExtension(file.getContentType());
+            String fileName = name + "." + fileExtension;
+            Path filePath = getFilePathByName(fileName);
+            System.out.println("Path: " + filePath);
             System.out.println("Salvando arquivo em: " + filePath.toAbsolutePath());
             Files.write(filePath, file.getBytes());
 
@@ -88,19 +113,48 @@ public class LocalStorageService {
         };
     }
 
-    public void deleteImage(String fileName) {
-        try {
-            Path filePath = Paths.get(uploadDir).resolve(fileName);
+    public String getFileNameFromUrlPath(String urlPath) {
+        String[] names = urlPath.split("/");
+        return names[names.length - 1];
+    }
 
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-            } else {
-                throw new CustomException(HttpStatus.NOT_FOUND.value(),
-                        "Imagem não encontrada", "A imagem especificada não foi encontrada.");
-            }
+    public Path getFilePathByName(String fileName) {
+        return Paths.get(uploadDir, fileName);
+    }
+
+    public boolean fileExists(Path filePath) {
+        return Files.exists(filePath);
+    }
+
+    public boolean deleteImage(String fileUrl) {
+        Path filePath = Paths.get(uploadDir).resolve(getFileNameFromUrlPath(fileUrl));
+
+        // Verifica se o arquivo existe antes de tentar deletar
+        if (!Files.exists(filePath)) {
+            throw new CustomException(HttpStatus.NOT_FOUND.value(),
+                    "Imagem não encontrada", "A imagem especificada não foi encontrada.");
+        }
+
+        try {
+            Files.delete(filePath);
+            return !Files.exists(filePath); // Retorna verdadeiro se a exclusão foi bem-sucedida
         } catch (IOException e) {
             throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     "Erro ao excluir imagem", "Ocorreu um problema ao deletar a imagem.");
         }
     }
+
+    public boolean updateImage(String fileUrl) {
+        Path filePath = Paths.get(uploadDir).resolve(getFileNameFromUrlPath(fileUrl));
+        try {
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            }
+            return !Files.exists(filePath); // Retorna verdadeiro se a exclusão foi bem-sucedida
+        } catch (IOException e) {
+            throw new CustomException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Erro ao excluir imagem", "Ocorreu um problema ao deletar a imagem.");
+        }
+    }
+
 }

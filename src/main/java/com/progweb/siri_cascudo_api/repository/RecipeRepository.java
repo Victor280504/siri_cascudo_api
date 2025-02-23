@@ -9,5 +9,7 @@ import java.util.List;
 
 @Repository
 public interface RecipeRepository extends JpaRepository<Recipe, RecipeId> {
-    List<Recipe> findById_IdProduct(Long idProduct); 
+    List<Recipe> findById_IdProduct(Long idProduct);
+    @Override
+    void deleteAll( Iterable<? extends Recipe> entities);
 }

@@ -2,7 +2,8 @@ package com.progweb.siri_cascudo_api.controller;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 // import com.progweb.siri_cascudo_api.dto.DeleteResponseDTO;
-import com.progweb.siri_cascudo_api.dto.IngredientDTO;
+import com.progweb.siri_cascudo_api.dto.Ingredient.CreateIngredientDTO;
+import com.progweb.siri_cascudo_api.dto.Ingredient.IngredientDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.service.IngredientService;
 import jakarta.validation.Valid;
@@ -13,14 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/ingredients")
+@RequestMapping("/api/ingredients")
+@CrossOrigin(origins = "*")
 public class IngredientController
 {
     @Autowired
     private IngredientService ingredientService;
 
     @PostMapping
-    public ResponseEntity<CreateResponseDTO> createIngredient(@Valid @RequestBody IngredientDTO ingredientDTO) {
+    public ResponseEntity<CreateResponseDTO> createIngredient(@Valid @RequestBody CreateIngredientDTO ingredientDTO) {
         return ResponseEntity.ok(ingredientService.createIngredient(ingredientDTO));
     }
 

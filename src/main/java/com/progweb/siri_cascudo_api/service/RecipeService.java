@@ -2,6 +2,7 @@ package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
+import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
 import com.progweb.siri_cascudo_api.model.Recipe;
 import com.progweb.siri_cascudo_api.model.RecipeId;
@@ -10,6 +11,7 @@ import com.progweb.siri_cascudo_api.repository.ProductRepository;
 import com.progweb.siri_cascudo_api.repository.IngredientRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,7 +59,7 @@ public class RecipeService {
 
         // Verifica se a receita já existe
         if (recipeRepository.existsById(id)) {
-            throw new IllegalArgumentException("Esta receita já foi cadastrada.");
+            throw new CustomException(HttpStatus.CONFLICT.value(), "Esta receita já foi cadastrada.", "Receita já encontrada no banco de dados, por favor cadastre uma nova receita diferente!");
         }
 
         // Cria e salva a nova receita
@@ -81,7 +83,7 @@ public class RecipeService {
         return new CreateResponseDTO(id.toString(), "Quantidade da receita atualizada com sucesso.");
     }
 
-    public CreateResponseDTO deleteRecipe(Long idProduct, Long idIngredient) {
+    public CreateResponseDTO deleteRecipeByRecipe(Long idProduct, Long idIngredient) {
         RecipeId id = new RecipeId(idProduct, idIngredient);
 
         Recipe recipe = recipeRepository.findById(id)
@@ -89,6 +91,14 @@ public class RecipeService {
 
         recipeRepository.delete(recipe);
         return new CreateResponseDTO(id.toString(), "Receita deletada com sucesso.");
+    }
+
+    public CreateResponseDTO deleteRecipeByProduct(Long idProduct) {
+
+        List<Recipe> recipe = recipeRepository.findById_IdProduct(idProduct);
+
+        recipeRepository.deleteAll(recipe);
+        return new CreateResponseDTO(idProduct.toString(), "Receita deletada com sucesso.");
     }
 
     private RecipeDTO mapToRecipeDTO(Recipe recipe) {

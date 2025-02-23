@@ -3,14 +3,19 @@ package com.progweb.siri_cascudo_api.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Entity
-@Table(name = "ingredient")
+import java.util.Date;
+
 @Data
-public class Ingredient {
+@Table(name = "sale")
+@Entity(name = "sale")
+public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer quantity;
-    private String description;
-    private double price;
+
+    private Date date;
+
+    private String paymentMethod;
+
+    private Long idUser;
 }

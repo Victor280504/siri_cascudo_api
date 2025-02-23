@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -29,6 +30,18 @@ public class GlobalExceptionHandler {
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Object> handleMaxSizeException(MaxUploadSizeExceededException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", new Date());
+        body.put("status", HttpStatus.PAYLOAD_TOO_LARGE.value());
+        body.put("error", "Payload Too Large");
+        body.put("message", "O arquivo enviado excede o limite permitido de 5MB.");
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+
+        return new ResponseEntity<>(body, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
     @ExceptionHandler(CustomException.class)

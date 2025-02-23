@@ -11,4 +11,5 @@ public class UserProfileDTO {
     private String email;
     private String address;
     private List<String> roles;
+    private double wallet;
 }
