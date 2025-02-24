@@ -6,11 +6,14 @@ import com.progweb.siri_cascudo_api.dto.Sale.SaleDTO;
 import com.progweb.siri_cascudo_api.dto.Sale.SaleProductDTO;
 import com.progweb.siri_cascudo_api.dto.Sale.UpdateSaleDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
+import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
 import com.progweb.siri_cascudo_api.model.*;
 import com.progweb.siri_cascudo_api.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -56,15 +59,12 @@ public class SaleService {
     }
 
     public CreateResponseDTO createSale(CreateSaleDTO dto) {
-        // Verifica se o produto existe
         userRepository.findById(dto.getIdUser())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Venda não encontrada", "id", dto.getIdUser()));
 
-        // Cria e salva a nova receita
         Sale newSale = new Sale();
-        Date currentDate = new Date();
-        newSale.setDate(currentDate);
+        newSale.setDate(new Date());
         newSale.setPaymentMethod(dto.getPaymentMethod());
         newSale.setIdUser(dto.getIdUser());
 
@@ -89,6 +89,7 @@ public class SaleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public UpdateResponseDTO<UpdateSaleDTO> updateSale(UpdateSaleDTO dto, Long saleId) {
 
         Sale saleById = saleRepository.findById(saleId)
@@ -97,36 +98,32 @@ public class SaleService {
         if (!Objects.equals(dto.getIdUser(), saleById.getIdUser()) && dto.getIdUser() != null) {
             saleById.setIdUser(dto.getIdUser());
         }
-        if (dto.getDate() != saleById.getDate() && dto.getDate() != null) {
+        if (dto.getDate() != null && !dto.getDate().equals(saleById.getDate())) {
             saleById.setDate(dto.getDate());
         }
         if (!Objects.equals(dto.getPaymentMethod(), saleById.getPaymentMethod()) && dto.getPaymentMethod() != null) {
             saleById.setPaymentMethod(dto.getPaymentMethod());
         }
 
-        List<SaleProduct> productsBySale = saleProductRepository.findById_IdSale(saleById.getId());
+        List<SaleProduct> existingProducts = saleProductRepository.findById_IdSale(saleById.getId());
 
         if (dto.getProducts() != null) {
             List<SaleProduct> newProducts = getSaleProductsByItems(dto.getProducts(), saleById.getId());
 
-            // Remover produtos que não estão na nova lista de produtos
-            productsBySale.removeIf(product -> !newProducts.contains(product));
+            // Identificar os produtos removidos
+            List<SaleProduct> removedProducts = existingProducts.stream()
+                    .filter(product -> !newProducts.contains(product))
+                    .toList();
 
-            // Adicionar produtos novos que não estão na lista atual
-            for (SaleProduct product : newProducts) {
-                if (!productsBySale.contains(product)) {
-                    productsBySale.add(product);
-                }
-            }
+            // Restaurar o estoque dos produtos removidos
+            restoreStockAfterSaleDeletion(removedProducts);
 
-            saleProductRepository.saveAll(productsBySale);
+            // Excluir os produtos removidos do banco de dados
+            saleProductRepository.deleteAll(removedProducts);
 
-            // Remover do repositório os produtos que foram removidos da lista
-            for (SaleProduct product : productsBySale) {
-                if (!newProducts.contains(product)) {
-                    saleProductRepository.delete(product);
-                }
-            }
+            // Persistir os novos produtos e atualizar o estoque
+            updateStockAfterSale(newProducts);
+            saleProductRepository.saveAll(newProducts);
         }
 
         Sale result = saleRepository.save(saleById);
@@ -135,9 +132,40 @@ public class SaleService {
         response.setIdUser(result.getIdUser());
         response.setDate(result.getDate());
         response.setPaymentMethod(result.getPaymentMethod());
-        response.setProducts(productsBySale.stream().map(this::mapToSaleProductDTO).collect(Collectors.toList()));
+        response.setProducts(
+                saleProductRepository.findById_IdSale(saleById.getId())
+                        .stream()
+                        .map(this::mapToSaleProductDTO)
+                        .collect(Collectors.toList())
+        );
 
         return new UpdateResponseDTO<>(saleId.toString(), "Venda atualizada com sucesso.", response);
+    }
+
+    @Transactional
+    public void restoreStockAfterSaleDeletion(List<SaleProduct> productsSold) {
+        for (SaleProduct saleProduct : productsSold) {
+            Product product = productRepository.findById(saleProduct.getId().getIdProduct())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado", "id", saleProduct.getId().getIdProduct()));
+
+            product.setQuantity(product.getQuantity() + saleProduct.getQuantity());
+            productRepository.save(product);
+        }
+    }
+
+    @Transactional
+    public void updateStockAfterSale(List<SaleProduct> productsSold) {
+        for (SaleProduct saleProduct : productsSold) {
+            Product product = productRepository.findById(saleProduct.getId().getIdProduct())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado", "id", saleProduct.getId().getIdProduct()));
+
+            if (product.getQuantity() < saleProduct.getQuantity()) {
+                throw new CustomException(HttpStatus.BAD_REQUEST.value(), "Estoque insuficiente", "A quantidade solicitada excede o estoque disponível.");
+            }
+
+            product.setQuantity(product.getQuantity() - saleProduct.getQuantity());
+            productRepository.save(product);
+        }
     }
 
     public CreateResponseDTO deleteSale(Long idSale) {
@@ -167,7 +195,7 @@ public class SaleService {
         return saleProduct;
     }
 
-    private SaleProductDTO mapToSaleProductDTO(SaleProduct sale) {
+    public SaleProductDTO mapToSaleProductDTO(SaleProduct sale) {
         SaleProductDTO dto = new SaleProductDTO();
         dto.setIdProduct(sale.getId().getIdProduct());
         dto.setQuantity(sale.getQuantity());

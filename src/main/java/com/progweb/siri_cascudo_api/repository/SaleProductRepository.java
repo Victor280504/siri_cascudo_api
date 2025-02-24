@@ -16,4 +16,10 @@ public interface SaleProductRepository extends JpaRepository<SaleProduct, SalePr
 
     @Override
     void deleteAll(Iterable<? extends SaleProduct> entities);
+
+    @Override
+    void delete(SaleProduct entity);
+
+    @Override
+    void deleteAllById(Iterable<? extends SaleProductId> saleProductIds);
 }
