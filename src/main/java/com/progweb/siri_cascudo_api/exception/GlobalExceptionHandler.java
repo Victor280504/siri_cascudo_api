@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.NOT_FOUND.value());
         body.put("error", "Not Found");
         body.put("message", ex.getMessage());
+        body.put("flag", ExceptionFlags.DANGER);
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
@@ -39,6 +40,7 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.PAYLOAD_TOO_LARGE.value());
         body.put("error", "Payload Too Large");
         body.put("message", "O arquivo enviado excede o limite permitido de 5MB.");
+        body.put("flag", ExceptionFlags.DANGER);
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         return new ResponseEntity<>(body, HttpStatus.PAYLOAD_TOO_LARGE);
@@ -55,6 +57,7 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(), // Nome do status (ex: "Bad Request")
                 ex.getMessage(), // Mensagem da exceção
                 ex.getDetails(), // Detalhes personalizados
+                ex.getFlag(),
                 request.getDescription(false).replace("uri=", "") // Caminho da requisição
         );
 
@@ -105,6 +108,7 @@ public class GlobalExceptionHandler {
                 "Internal Server Error", // Tipo de erro
                 "An unexpected error occurred", // Mensagem padrão
                 "Please contact the administrator.", // Detalhes padrão
+                ExceptionFlags.DANGER,
                 request.getDescription(false).replace("uri=", "") // Caminho da requisição
         );
 

@@ -2,17 +2,21 @@ package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.CreateProductDTO;
+import com.progweb.siri_cascudo_api.dto.RecipeDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.ProductDTO;
 import com.progweb.siri_cascudo_api.dto.Product.UpdateProductDTO;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
+import com.progweb.siri_cascudo_api.model.Ingredient;
 import com.progweb.siri_cascudo_api.model.Product;
 import com.progweb.siri_cascudo_api.repository.ProductRepository;
-import com.progweb.siri_cascudo_api.util.LocalStorageService;
+import com.progweb.siri_cascudo_api.util.storage.Storage;
+import com.progweb.siri_cascudo_api.util.storage.StorageStrategyRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +29,17 @@ public class ProductService {
     private ProductRepository productRepository;
 
     @Autowired
-    private LocalStorageService localStorageService;
+    private StorageStrategyRegistry storageStrategyRegistry;
+
+    @Autowired
+    private RecipeService recipeService;
+
+    private Storage storageService;
+
+    @PostConstruct
+    public void init() {
+        this.storageService = storageStrategyRegistry.getSaveStrategy();
+    }
 
     public ProductDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -45,11 +59,10 @@ public class ProductService {
         product.setName(productDTO.getName());
         product.setDescription(productDTO.getDescription());
         product.setPrice(productDTO.getPrice());
-        product.setQuantity(productDTO.getQuantity());
         product.setIdCategory(productDTO.getIdCategory());
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageName = localStorageService.saveImage(imageFile);
+            String imageName = storageService.saveImage(imageFile);
             product.setImage(imageName);
         }
 
@@ -70,17 +83,14 @@ public class ProductService {
         if (productDTO.getPrice() != product.getPrice()) {
             product.setPrice(productDTO.getPrice());
         }
-        if (productDTO.getQuantity() != product.getQuantity()) {
-            product.setQuantity(productDTO.getQuantity());
-        }
 
         if (productDTO.getIdCategory() != null && !Objects.equals(productDTO.getIdCategory(), product.getIdCategory())) {
             product.setIdCategory(productDTO.getIdCategory());
         }
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageName = localStorageService.saveImage(imageFile);
-            boolean res = localStorageService.updateImage(product.getImage());
+            String imageName = storageService.saveImage(imageFile);
+            boolean res = storageService.updateImage(product.getImage());
             if (res) {
                 product.setImage(imageName);
             } else {
@@ -98,7 +108,7 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", "id", id));
 
         if (product.getImage() != null && !product.getImage().isEmpty()) {
-            localStorageService.deleteImage(product.getImage());
+            storageService.deleteImage(product.getImage());
         }
 
         productRepository.delete(product);
@@ -109,8 +119,8 @@ public class ProductService {
         productDTO.setId(product.getId());
         productDTO.setName(product.getName());
         productDTO.setDescription(product.getDescription());
-        productDTO.setQuantity(product.getQuantity());
         productDTO.setPrice(product.getPrice());
+        productDTO.setAvailable(recipeService.getAvailableQuantity(product.getId()));
         productDTO.setIdCategory(product.getIdCategory());
         productDTO.setImage(product.getImage());
         return productDTO;

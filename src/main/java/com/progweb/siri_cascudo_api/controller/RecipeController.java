@@ -2,6 +2,8 @@ package com.progweb.siri_cascudo_api.controller;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
+import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
+import com.progweb.siri_cascudo_api.model.Recipe;
 import com.progweb.siri_cascudo_api.service.RecipeService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,12 @@ public class RecipeController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/list")
+    public ResponseEntity<CreateResponseDTO> createRecipeByList(@Valid @RequestBody List<RecipeDTO> recipeDTO) {
+        CreateResponseDTO response = recipeService.createRecipeByList(recipeDTO);
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{idProduct}/{idIngredient}")
     public ResponseEntity<CreateResponseDTO> updateRecipeQuantity(
             @PathVariable Long idProduct,
@@ -47,6 +55,21 @@ public class RecipeController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{idProduct}")
+    public ResponseEntity<UpdateResponseDTO<List<Recipe>>> updateRecipeByList(
+            @PathVariable Long idProduct,
+            @RequestBody List<RecipeDTO> recipeDTO) {
+
+        UpdateResponseDTO<List<Recipe>> response = recipeService.updateRecipeByList(idProduct, recipeDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/product/{idProduct}")
+    public ResponseEntity<CreateResponseDTO> deleteRecipeByProduct(@PathVariable Long idProduct) {
+        CreateResponseDTO response = recipeService.deleteRecipeByProduct(idProduct);
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping("/{idProduct}/{idIngredient}")
     public ResponseEntity<CreateResponseDTO> deleteRecipe(@PathVariable Long idProduct,
             @PathVariable Long idIngredient) {
@@ -54,9 +77,4 @@ public class RecipeController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{idProduct}")
-    public ResponseEntity<CreateResponseDTO> deleteRecipeByProduct(@PathVariable Long idProduct) {
-        CreateResponseDTO response = recipeService.deleteRecipeByProduct(idProduct);
-        return ResponseEntity.ok(response);
-    }
 }

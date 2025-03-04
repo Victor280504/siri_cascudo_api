@@ -12,4 +12,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, RecipeId> {
     List<Recipe> findById_IdProduct(Long idProduct);
     @Override
     void deleteAll( Iterable<? extends Recipe> entities);
+
+    @Override
+    <S extends Recipe> List<S> saveAll(Iterable<S> entities);
 }

@@ -35,6 +35,10 @@ public class SaleService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RecipeService recipeService;
+
+
     public List<SaleDTO> getAllSales() {
         return saleRepository.findAll()
                 .stream()
@@ -148,7 +152,6 @@ public class SaleService {
             Product product = productRepository.findById(saleProduct.getId().getIdProduct())
                     .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado", "id", saleProduct.getId().getIdProduct()));
 
-            product.setQuantity(product.getQuantity() + saleProduct.getQuantity());
             productRepository.save(product);
         }
     }
@@ -159,11 +162,9 @@ public class SaleService {
             Product product = productRepository.findById(saleProduct.getId().getIdProduct())
                     .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado", "id", saleProduct.getId().getIdProduct()));
 
-            if (product.getQuantity() < saleProduct.getQuantity()) {
+            if (recipeService.getAvailableQuantity(product.getId()) < saleProduct.getQuantity()) {
                 throw new CustomException(HttpStatus.BAD_REQUEST.value(), "Estoque insuficiente", "A quantidade solicitada excede o estoque disponível.");
             }
-
-            product.setQuantity(product.getQuantity() - saleProduct.getQuantity());
             productRepository.save(product);
         }
     }

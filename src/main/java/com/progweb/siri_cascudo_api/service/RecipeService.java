@@ -2,8 +2,10 @@ package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
+import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
+import com.progweb.siri_cascudo_api.model.Ingredient;
 import com.progweb.siri_cascudo_api.model.Recipe;
 import com.progweb.siri_cascudo_api.model.RecipeId;
 import com.progweb.siri_cascudo_api.repository.RecipeRepository;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +44,23 @@ public class RecipeService {
                 .stream()
                 .map(this::mapToRecipeDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    public CreateResponseDTO createRecipeByList(List<RecipeDTO> recipesDTO) {
+        Long productID = recipesDTO.getFirst().getIdProduct();
+
+        List<Recipe> recipes = recipesDTO.stream().map(this::mapToRecipe).toList();
+        recipeRepository.saveAll(recipes);
+        return new CreateResponseDTO(productID.toString(), "Receita criada com sucesso");
+    }
+
+    public UpdateResponseDTO<List<Recipe>> updateRecipeByList(Long productID, List<RecipeDTO> recipesDTO) {
+        List<Recipe> recipes = recipesDTO.stream().map(this::mapToRecipe).toList();
+
+        recipeRepository.saveAll(recipes);
+
+        return new UpdateResponseDTO<>(productID.toString(), "Receita atualizada com sucesso", recipes);
     }
 
     public CreateResponseDTO createRecipe(RecipeDTO recipeDTO) {
@@ -101,11 +121,47 @@ public class RecipeService {
         return new CreateResponseDTO(idProduct.toString(), "Receita deletada com sucesso.");
     }
 
+    public int getAvailableQuantity(Long id) {
+        List<RecipeDTO> recipes = getRecipesByProductId(id);
+        List<Ingredient> ingredients = ingredientRepository.findAll();
+
+        if (recipes.isEmpty()) {
+            return 0; // Se não há receita, não podemos produzir nada
+        }
+
+        // Mapa para acessar os ingredientes do estoque mais rápido
+        Map<Long, Integer> stockMap = ingredients.stream()
+                .collect(Collectors.toMap(Ingredient::getId, Ingredient::getQuantity));
+
+        int maxProducts = Integer.MAX_VALUE;
+
+        for (RecipeDTO recipe : recipes) {
+            Long ingredientId = recipe.getIdIngredient();
+            int requiredQuantity = recipe.getQuantity();
+
+            if (!stockMap.containsKey(ingredientId) || stockMap.get(ingredientId) < requiredQuantity) {
+                return 0; // Se faltar algum ingrediente essencial, não podemos produzir nada
+            }
+
+            int available = stockMap.get(ingredientId) / requiredQuantity;
+            maxProducts = Math.min(maxProducts, available);
+        }
+        return maxProducts;
+    }
+
     private RecipeDTO mapToRecipeDTO(Recipe recipe) {
         RecipeDTO recipeDTO = new RecipeDTO();
         recipeDTO.setIdProduct(recipe.getId().getIdProduct());
         recipeDTO.setIdIngredient(recipe.getId().getIdIngredient());
         recipeDTO.setQuantity(recipe.getQuantity());
         return recipeDTO;
+    }
+
+    private Recipe mapToRecipe(RecipeDTO recipe) {
+        Recipe newRecipe = new Recipe();
+        RecipeId id = new RecipeId(recipe.getIdProduct(), recipe.getIdIngredient());
+        newRecipe.setId(id);
+        newRecipe.setQuantity(recipe.getQuantity());
+        return newRecipe;
     }
 }

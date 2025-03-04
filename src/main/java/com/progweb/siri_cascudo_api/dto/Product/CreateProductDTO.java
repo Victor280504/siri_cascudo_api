@@ -19,9 +19,6 @@ public class CreateProductDTO {
     @NotNull(message = "A Imagem é obrigatória.")
     private MultipartFile image;
 
-    @Min(value = 1, message = "A quantidade deve ser pelo menos 1.")
-    private int quantity;
-
     @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
     private double price;
 

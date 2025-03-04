@@ -19,9 +19,6 @@ public class UpdateProductDTO {
       @FileSize(max = 5 * 1024 * 1024, message = "O tamanho do arquivo não pode exceder 5MB.")
     private MultipartFile image;
 
-    //@Min(value = 0, message = "A quantidade não pode ser negativa.")
-    private int quantity;
-
     //@DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
     private double price;
 

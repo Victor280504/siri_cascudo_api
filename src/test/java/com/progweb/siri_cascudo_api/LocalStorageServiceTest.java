@@ -1,7 +1,7 @@
 package com.progweb.siri_cascudo_api;
 
 import com.progweb.siri_cascudo_api.exception.CustomException;
-import com.progweb.siri_cascudo_api.util.LocalStorageService;
+import com.progweb.siri_cascudo_api.util.storage.services.LocalStorageService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,8 +1,8 @@
-package com.progweb.siri_cascudo_api.util;
+package com.progweb.siri_cascudo_api.util.storage.services;
 
 import com.progweb.siri_cascudo_api.config.AppConfig;
 import com.progweb.siri_cascudo_api.exception.CustomException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.progweb.siri_cascudo_api.util.storage.Storage;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,14 +15,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class LocalStorageService {
+public class LocalStorageService implements Storage {
 
     private final String uploadDir;
     private final String baseUrl;
     private static final List<String> ALLOWED_TYPES = List.of("image/jpeg", "image/png");
     private static final long MAX_SIZE = 10 * 1024 * 1024;
 
-    @Autowired
     public LocalStorageService(AppConfig appConfig) {
         this.uploadDir = appConfig.getUploadDir();
         this.baseUrl = appConfig.getBaseUrl();
@@ -37,6 +36,7 @@ public class LocalStorageService {
         }
     }
 
+    @Override
     public String saveImage(MultipartFile file) {
         validateImage(file);
 
@@ -82,7 +82,8 @@ public class LocalStorageService {
         }
     }
 
-    private void validateImage(MultipartFile file) {
+    @Override
+    public void validateImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new CustomException(HttpStatus.BAD_REQUEST.value(),
                     "Arquivo inválido", "O arquivo não pode ser nulo ou vazio.");
@@ -126,6 +127,7 @@ public class LocalStorageService {
         return Files.exists(filePath);
     }
 
+    @Override
     public boolean deleteImage(String fileUrl) {
         Path filePath = Paths.get(uploadDir).resolve(getFileNameFromUrlPath(fileUrl));
 
@@ -144,6 +146,7 @@ public class LocalStorageService {
         }
     }
 
+    @Override
     public boolean updateImage(String fileUrl) {
         Path filePath = Paths.get(uploadDir).resolve(getFileNameFromUrlPath(fileUrl));
         try {
