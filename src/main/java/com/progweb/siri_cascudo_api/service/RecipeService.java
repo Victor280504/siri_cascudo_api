@@ -3,6 +3,7 @@ package com.progweb.siri_cascudo_api.service;
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeWithIngredientDTO;
+import com.progweb.siri_cascudo_api.dto.Sale.RecipeWithExpensesDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
@@ -46,6 +47,31 @@ public class RecipeService {
                 .stream()
                 .map(this::mapToRecipeDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<RecipeWithExpensesDTO> getRecipesWithExpensesByProductId(Long productId) {
+        List<RecipeWithIngredientDTO> recipesWithoutExpenses = getRecipeWithIngredient(productId);
+
+        return recipesWithoutExpenses.stream().map(this::mapToRecipeWithExpenses).toList();
+    }
+
+    public Double getTotalRecipeCost(List<RecipeWithExpensesDTO> recipes) {
+        return recipes.stream().mapToDouble(RecipeWithExpensesDTO::getExpenses)
+                .sum();
+    }
+
+    public Double getRecipeCostByProduct(Long productId) {
+        List<RecipeWithExpensesDTO> recipes = getRecipesWithExpensesByProductId(productId);
+        return getTotalRecipeCost(recipes);
+    }
+
+    public RecipeWithExpensesDTO mapToRecipeWithExpenses(RecipeWithIngredientDTO recipeWithIngredientDTOS) {
+        RecipeWithExpensesDTO result = new RecipeWithExpensesDTO();
+        result.setIngredient(recipeWithIngredientDTOS.getIngredient());
+        result.setIdProduct(recipeWithIngredientDTOS.getIdProduct());
+        result.setQuantity(recipeWithIngredientDTOS.getQuantity());
+        result.setExpenses(recipeWithIngredientDTOS.getQuantity() * recipeWithIngredientDTOS.getIngredient().getPrice());
+        return result;
     }
 
     public List<RecipeWithIngredientDTO> getRecipeWithIngredient(Long productId) {

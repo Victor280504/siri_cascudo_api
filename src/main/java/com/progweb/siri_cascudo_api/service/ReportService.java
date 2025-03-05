@@ -1,8 +1,8 @@
 package com.progweb.siri_cascudo_api.service;
 
-import com.progweb.siri_cascudo_api.dto.Sale.ReportDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.ReportSaleData;
+import com.progweb.siri_cascudo_api.dto.Sale.*;
 import com.progweb.siri_cascudo_api.model.Sale;
+import com.progweb.siri_cascudo_api.repository.IngredientRepository;
 import com.progweb.siri_cascudo_api.repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +21,12 @@ public class ReportService {
 
     @Autowired
     private SaleService saleService;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
+
+    @Autowired
+    private RecipeService recipeService;
 
 
     public ReportDTO getReport() {
@@ -86,6 +92,11 @@ public class ReportService {
 
     // falta implementar
     private BigDecimal calculateExpenses(Sale sale) {
-        return BigDecimal.ZERO;
+        SaleDetailsDTO saleDetailsDTO = saleService.getSaleWithDetailsBySaleId(sale.getId());
+        double result = saleDetailsDTO.getProducts()
+                .stream()
+                .mapToDouble(SaleProductWithProductDTO -> recipeService.getRecipeCostByProduct(SaleProductWithProductDTO.getProduct().getId()) * SaleProductWithProductDTO.getQuantity())
+                .sum();
+        return BigDecimal.valueOf(result);
     }
 }
