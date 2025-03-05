@@ -2,6 +2,7 @@ package com.progweb.siri_cascudo_api.controller;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
+import com.progweb.siri_cascudo_api.dto.RecipeWithIngredientDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.model.Recipe;
 import com.progweb.siri_cascudo_api.service.RecipeService;
@@ -30,6 +31,11 @@ public class RecipeController {
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<RecipeDTO>> getRecipesByProductId(@PathVariable Long productId) {
         return ResponseEntity.ok(recipeService.getRecipesByProductId(productId));
+    }
+
+    @GetMapping("/product/names/{productId}")
+    public ResponseEntity<List<RecipeWithIngredientDTO>> getRecipeWithIngredient(@PathVariable Long productId) {
+        return ResponseEntity.ok(recipeService.getRecipeWithIngredient(productId));
     }
 
     @PostMapping
@@ -72,7 +78,7 @@ public class RecipeController {
 
     @DeleteMapping("/{idProduct}/{idIngredient}")
     public ResponseEntity<CreateResponseDTO> deleteRecipe(@PathVariable Long idProduct,
-            @PathVariable Long idIngredient) {
+                                                          @PathVariable Long idIngredient) {
         CreateResponseDTO response = recipeService.deleteRecipeByRecipe(idProduct, idIngredient);
         return ResponseEntity.ok(response);
     }

@@ -2,12 +2,10 @@ package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.CreateProductDTO;
-import com.progweb.siri_cascudo_api.dto.RecipeDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.Product.ProductDTO;
 import com.progweb.siri_cascudo_api.dto.Product.UpdateProductDTO;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
-import com.progweb.siri_cascudo_api.model.Ingredient;
 import com.progweb.siri_cascudo_api.model.Product;
 import com.progweb.siri_cascudo_api.repository.ProductRepository;
 import com.progweb.siri_cascudo_api.util.storage.Storage;
@@ -80,7 +78,8 @@ public class ProductService {
         if (productDTO.getDescription() != null && !productDTO.getDescription().isEmpty()) {
             product.setDescription(productDTO.getDescription());
         }
-        if (productDTO.getPrice() != product.getPrice()) {
+
+        if (productDTO.getPrice() != 0 && productDTO.getPrice() != product.getPrice()) {
             product.setPrice(productDTO.getPrice());
         }
 
@@ -99,6 +98,7 @@ public class ProductService {
         }
 
         Product updatedProduct = productRepository.save(product);
+
         return new UpdateResponseDTO<>(updatedProduct.getId().toString(), "Produto atualizado com sucesso.",
                 mapToProductDTO(updatedProduct));
     }

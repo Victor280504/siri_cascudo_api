@@ -190,7 +190,7 @@ EXECUTE FUNCTION update_ingredient_quantity();
 
 -- Inserção do usuário admin
 INSERT INTO public.customer (name, email, password, address, wallet)
-VALUES ('admin', 'admin@siricascudo.com', 'Admin123*', 'Admin Address, 00', 100.00);
+VALUES ('admin', 'admin@siricascudo.com', 'Admin123*', 'Admin Address, 00', 200.00);
 
 -- Definindo o papel de administrador para o usuário admin
 INSERT INTO public.customer_roles (role, id_user)

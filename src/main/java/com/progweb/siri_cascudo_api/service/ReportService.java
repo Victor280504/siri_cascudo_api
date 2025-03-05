@@ -1,7 +1,7 @@
 package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.Sale.ReportDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.ReportDTO.ReportSaleData;
+import com.progweb.siri_cascudo_api.dto.Sale.ReportSaleData;
 import com.progweb.siri_cascudo_api.model.Sale;
 import com.progweb.siri_cascudo_api.repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,18 @@ public class ReportService {
     @Autowired
     private SaleRepository saleRepository;
 
-    public ReportDTO getWeeklyReport() {
+    @Autowired
+    private SaleService saleService;
+
+
+    public ReportDTO getReport() {
+        ReportDTO report = new ReportDTO();
+        report.setMonthlyReport(getMonthlyReport());
+        report.setWeeklyReport(getWeeklyReport());
+        return report;
+    }
+
+    public List<ReportSaleData> getWeeklyReport() {
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.minusDays(today.getDayOfWeek().getValue() - 1);
         LocalDate endOfWeek = startOfWeek.plusDays(6);
@@ -27,7 +38,7 @@ public class ReportService {
         return generateReport(startOfWeek, endOfWeek);
     }
 
-    public ReportDTO getMonthlyReport() {
+    public List<ReportSaleData> getMonthlyReport() {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
         LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
@@ -35,7 +46,7 @@ public class ReportService {
         return generateReport(startOfMonth, endOfMonth);
     }
 
-    private ReportDTO generateReport(LocalDate startDate, LocalDate endDate) {
+    private List<ReportSaleData> generateReport(LocalDate startDate, LocalDate endDate) {
         Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -57,9 +68,7 @@ public class ReportService {
 
         calculateComparison(reportDataList);
 
-        ReportDTO reportDTO = new ReportDTO();
-        reportDTO.setWeeklyReport(reportDataList);
-        return reportDTO;
+        return reportDataList;
     }
 
     private void calculateComparison(List<ReportSaleData> reportDataList) {
@@ -72,9 +81,7 @@ public class ReportService {
     }
 
     private BigDecimal calculateRevenue(Sale sale) {
-        return BigDecimal.valueOf(sale.getSaleProducts().stream()
-                .mapToDouble(sp -> sp.getValue() * sp.getQuantity())
-                .sum());
+        return BigDecimal.valueOf(saleService.getTotalFromSale(sale.getId()));
     }
 
     // falta implementar

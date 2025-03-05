@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,7 +24,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF (Cross-Site Request Forgery)
+                .csrf(AbstractHttpConfigurer::disable) // Desabilita CSRF (Cross-Site Request Forgery)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
                     corsConfiguration.addAllowedOrigin("http://localhost:5173"); // Permite o front-end
@@ -38,13 +39,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ingredients", "/api/ingredients/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/sales", "/api/sales/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/sales", "/api/sales/detail/{id}", "/api/sales/user/{id}", "/api/sales/{id}").permitAll()
 
                         // Restringindo POST, PUT e DELETE para ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/sales/report").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/sales").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/products", "/api/categories", "/api/ingredients").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**", "/api/categories/**", "/api/ingredients/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/categories/**", "/api/ingredients/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**", "/api/categories/**", "/api/ingredients/**", "/api/sales/**").hasRole("ADMIN")
 
                         // Todas as outras rotas exigem autenticação
                         .requestMatchers("/api/**").authenticated()

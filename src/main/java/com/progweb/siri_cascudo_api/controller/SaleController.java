@@ -1,10 +1,9 @@
 package com.progweb.siri_cascudo_api.controller;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.CreateSaleDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.SaleDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.UpdateSaleDTO;
+import com.progweb.siri_cascudo_api.dto.Sale.*;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
+import com.progweb.siri_cascudo_api.service.ReportService;
 import com.progweb.siri_cascudo_api.service.SaleService;
 import com.progweb.siri_cascudo_api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +22,27 @@ public class SaleController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ReportService reportService;
+
     @GetMapping
-    public ResponseEntity<List<SaleDTO>> getAllSales() {
+    public ResponseEntity<List<SaleWithTotalDTO>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<ReportDTO> getMothlyReport() {
+        return ResponseEntity.ok(reportService.getReport());
+    }
+
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<SaleDetailsDTO> getSaleDetailsById(@PathVariable Long id) {
+        return ResponseEntity.ok(saleService.getSaleWithDetailsBySaleId(id));
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<List<SaleWithTotalDTO>> getSalesByUseryId(@PathVariable Long id) {
+        return ResponseEntity.ok(saleService.getSalesByUseryId(id));
     }
 
     @GetMapping("/{id}")
@@ -33,10 +50,6 @@ public class SaleController {
         return ResponseEntity.ok(saleService.getSaleById(id));
     }
 
-//    @GetMapping("/report")
-//    public ResponseEntity<List<SaleDTO>> getSalesByUseryId(@PathVariable Long id) {
-//        return ResponseEntity.ok();
-//    }
 
     @PostMapping
     public ResponseEntity<CreateResponseDTO> createSale(@RequestBody CreateSaleDTO dto) {

@@ -1,10 +1,7 @@
 package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.CreateSaleDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.SaleDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.SaleProductDTO;
-import com.progweb.siri_cascudo_api.dto.Sale.UpdateSaleDTO;
+import com.progweb.siri_cascudo_api.dto.Sale.*;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
@@ -39,11 +36,60 @@ public class SaleService {
     private RecipeService recipeService;
 
 
-    public List<SaleDTO> getAllSales() {
+    public List<SaleWithTotalDTO> getAllSales() {
         return saleRepository.findAll()
                 .stream()
-                .map(this::mapToSaleDTO)
+                .map(this::mapToSaleWithTotalDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<SaleWithTotalDTO> getSalesByUseryId(Long id) {
+
+        List<SaleWithTotalDTO> allSales = saleRepository.findAll()
+                .stream()
+                .map(this::mapToSaleWithTotalDTO)
+                .toList();
+
+        return allSales.stream().filter(sale -> Objects.equals(sale.getIdUser(), id)).toList();
+    }
+
+    public SaleDetailsDTO getSaleWithDetailsBySaleId(Long id) {
+        UpdateSaleDTO sale = getSaleById(id);
+
+        Double total = sale.getProducts().stream()
+                .mapToDouble(SaleProductDTO::getValue)
+                .sum();
+
+        List<SaleProductWithProductDTO> SPWithproducts = sale.getProducts().stream().map(this::addProductToSaleProduct).toList();
+
+        SaleDetailsDTO saleWithDetails = new SaleDetailsDTO();
+
+        saleWithDetails.setDate(sale.getDate());
+        saleWithDetails.setPaymentMethod(sale.getPaymentMethod());
+        saleWithDetails.setIdUser(sale.getIdUser());
+        saleWithDetails.setTotal(total);
+        saleWithDetails.setProducts(SPWithproducts);
+
+        return saleWithDetails;
+    }
+
+    public double getTotalFromSale(Long id) {
+        UpdateSaleDTO sale = getSaleById(id);
+
+        return sale.getProducts().stream()
+                .mapToDouble(SaleProductDTO::getValue)
+                .sum();
+    }
+
+    public SaleProductWithProductDTO addProductToSaleProduct(SaleProductDTO saleProduct) {
+        Product product = productRepository.findById(saleProduct.getIdProduct()).orElseThrow(
+                () -> new ResourceNotFoundException("Produto não encontrado", "id", saleProduct.getIdProduct()));
+        SaleProductWithProductDTO newSaleProduct = new SaleProductWithProductDTO();
+
+        newSaleProduct.setProduct(product);
+        newSaleProduct.setValue(saleProduct.getValue());
+        newSaleProduct.setQuantity(saleProduct.getQuantity());
+        return newSaleProduct;
     }
 
     public UpdateSaleDTO getSaleById(Long saleId) {
@@ -63,9 +109,20 @@ public class SaleService {
     }
 
     public CreateResponseDTO createSale(CreateSaleDTO dto) {
-        userRepository.findById(dto.getIdUser())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Venda não encontrada", "id", dto.getIdUser()));
+        User currentUser = userRepository.findById(dto.getIdUser())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado", "id", dto.getIdUser()));
+
+        double total = dto.getProducts().stream()
+                .mapToDouble(SaleProductDTO::getValue)
+                .sum();
+
+        if (currentUser.getWallet() < total) {
+            throw new CustomException(HttpStatus.FORBIDDEN.value(), "Saldo Insuficiente na Conta.", "Seu saldo é inferior ao total da compra, adicione mais saldo na sua conta!");
+        }
+
+        currentUser.setWallet(currentUser.getWallet() - total);
+
+        userRepository.save(currentUser);
 
         Sale newSale = new Sale();
         newSale.setDate(new Date());
@@ -76,7 +133,8 @@ public class SaleService {
 
         List<SaleProduct> productsSold = getSaleProductsByItems(dto.getProducts(), createdSale.getId());
 
-        saleProductRepository.saveAll(productsSold);
+        List<SaleProduct> saleProducts = saleProductRepository.saveAll(productsSold);
+
 
         return new CreateResponseDTO(createdSale.getId().toString(), "Venda criada com sucesso.");
     }
@@ -183,6 +241,16 @@ public class SaleService {
         saleDto.setDate(sale.getDate());
         saleDto.setIdUser(sale.getIdUser());
         saleDto.setId(sale.getId());
+        saleDto.setPaymentMethod(sale.getPaymentMethod());
+        return saleDto;
+    }
+
+    private SaleWithTotalDTO mapToSaleWithTotalDTO(Sale sale) {
+        SaleWithTotalDTO saleDto = new SaleWithTotalDTO();
+        saleDto.setDate(sale.getDate());
+        saleDto.setIdUser(sale.getIdUser());
+        saleDto.setId(sale.getId());
+        saleDto.setTotal(getTotalFromSale(sale.getId()));
         saleDto.setPaymentMethod(sale.getPaymentMethod());
         return saleDto;
     }

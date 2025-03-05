@@ -2,6 +2,7 @@ package com.progweb.siri_cascudo_api.service;
 
 import com.progweb.siri_cascudo_api.dto.CreateResponseDTO;
 import com.progweb.siri_cascudo_api.dto.RecipeDTO;
+import com.progweb.siri_cascudo_api.dto.RecipeWithIngredientDTO;
 import com.progweb.siri_cascudo_api.dto.UpdateResponseDTO;
 import com.progweb.siri_cascudo_api.exception.CustomException;
 import com.progweb.siri_cascudo_api.exception.ResourceNotFoundException;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +48,27 @@ public class RecipeService {
                 .collect(Collectors.toList());
     }
 
+    public List<RecipeWithIngredientDTO> getRecipeWithIngredient(Long productId) {
+        List<RecipeDTO> recipeDTOS = getRecipesByProductId(productId);
+        List<Ingredient> ingredients = ingredientRepository.findAll();
+        return recipeDTOS.stream()
+                .map(recipeDTO -> {
+                    Ingredient ingredient = findIngredientForRecipe(recipeDTO, ingredients);
+                    RecipeWithIngredientDTO newDTO = new RecipeWithIngredientDTO();
+                    newDTO.setIngredient(ingredient);
+                    newDTO.setQuantity(recipeDTO.getQuantity());
+                    newDTO.setIdProduct(recipeDTO.getIdProduct());
+                    return newDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Ingredient findIngredientForRecipe(RecipeDTO recipeDTO, List<Ingredient> ingredientes) {
+        return ingredientes.stream()
+                .filter(ingredient -> Objects.equals(ingredient.getId(), recipeDTO.getIdIngredient()))
+                .findFirst()
+                .orElse(null);
+    }
 
     public CreateResponseDTO createRecipeByList(List<RecipeDTO> recipesDTO) {
         Long productID = recipesDTO.getFirst().getIdProduct();
